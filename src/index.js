@@ -5,18 +5,23 @@ const commandLineUsage = require("command-line-usage");
 const config = require("../config.js");
 const rootChainI = require("./rootChainI.js");
 const fs = require("fs");
+const chalk = require("chalk");
+
+const header = `
+`;
 
 const childChain = new ChildChain({
   watcherUrl: config.watcher_url,
   watcherProxyUrl: config.watcher_proxy_url
 });
 
+console.log(fs.readFileSync("./static/header.txt").toString());
+
 const optionDefinitions = [
   {
-    header: "Utility cli tool for testing the OMG network"
+    header: "CLI security testing tool"
   },
   {
-    header: "Options",
     optionList: [
       {
         name: "decode",
