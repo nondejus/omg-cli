@@ -32,16 +32,16 @@ async function challengeStandardExit(challangeData) {
   );
 }
 
-async function startIFE(challangeData) {
+async function startIFE(startIFEData) {
   return await rootChain.startInFlightExit(
-    inFlightTx,
-    inputTxs,
-    inputUtxosPos,
-    outputGuardPreimagesForInputs,
-    inputTxsInclusionProofs,
-    inFlightTxSigs,
+    startIFEData.in_flight_tx,
+    startIFEData.input_txs,
+    startIFEData.input_utxos_pos,
+    ["0x"],
+    startIFEData.input_txs_inclusion_proofs,
+    startIFEData.in_flight_tx_sigs,
     signatures,
-    inputSpendingConditionOptionalArgs,
+    ["0x"],
     {
       privateKey: config.alice_eth_address_private_key,
       from: config.alice_eth_address,
