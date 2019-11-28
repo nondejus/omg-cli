@@ -2,7 +2,7 @@
   "name": "omg-js-cli",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "omg-js-cli",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -24,6 +24,6 @@
     "web3-utils": "^1.2.4"
   },
   "keywords": [],
-  "author": "",
+  "author": "Gerhard Wagner",
   "license": "ISC"
 }

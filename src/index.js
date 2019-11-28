@@ -7,21 +7,20 @@ const rootChainI = require("./rootChainI.js");
 const fs = require("fs");
 const chalk = require("chalk");
 
-const header = `
-`;
+const banner = fs.readFileSync("./static/header.txt").toString();
 
 const childChain = new ChildChain({
   watcherUrl: config.watcher_url,
   watcherProxyUrl: config.watcher_proxy_url
 });
 
-console.log(fs.readFileSync("./static/header.txt").toString());
-
 const optionDefinitions = [
   {
-    header: "CLI security testing tool"
+    content: chalk.green(banner),
+    raw: true
   },
   {
+    header: "Options",
     optionList: [
       {
         name: "decode",
