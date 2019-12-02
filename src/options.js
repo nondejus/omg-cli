@@ -15,7 +15,7 @@ const optionDefinitions = [
         name: "decode",
         alias: "d",
         type: String,
-        typeLabel: "{underline rlpMsg}",
+        typeLabel: "{underline string}",
         description: "Decode an RLP encoded tx"
       },
       {
@@ -36,7 +36,7 @@ const optionDefinitions = [
         name: "getUTXOs",
         alias: "u",
         type: String,
-        typeLabel: "{underline address}",
+        typeLabel: "{underline string}",
         description: "Get all UTXOs for an owner address"
       },
       {
@@ -47,7 +47,7 @@ const optionDefinitions = [
       {
         name: "getSEData",
         type: String,
-        typeLabel: "{underline utxo}",
+        typeLabel: "{underline number}",
         description: "Get standard exit data for a UTXO"
       },
       {
@@ -59,7 +59,7 @@ const optionDefinitions = [
       {
         name: "getSEChallengeData",
         type: String,
-        typeLabel: "{underline utxo}",
+        typeLabel: "{underline number}",
         description: "Get standard exit challenge data for a UTXO"
       },
       {
@@ -77,7 +77,7 @@ const optionDefinitions = [
       {
         name: "processExits",
         type: String,
-        typeLabel: "{underline address}",
+        typeLabel: "{underline string}",
         description: "Process exits for a specific token"
       },
       {
