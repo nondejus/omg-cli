@@ -40,6 +40,7 @@ test("Get UTXOs for an address", async () => {
 
 test("RLP encoded a tx from a JSON file", async () => {
   console.log = jest.fn();
+
   const cliOptions = {
     encode: "./tests/fixtures/tx1.json"
   };

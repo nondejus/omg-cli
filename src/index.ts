@@ -61,31 +61,56 @@ async function omgJSMain(options: any) {
     const encodedTx = transaction.encode(tx);
     console.log(encodedTx);
   } else if (options["deposit"]) {
-    const depositAmount = new BigNumber(
-      web3.utils.toWei(config.alice_eth_deposit_amount, "ether")
-    );
-    const depositTx = await transaction.encodeDeposit(
-      config.alice_eth_address,
-      depositAmount,
-      transaction.ETH_CURRENCY
-    );
-
     if (options["deposit"] == "0x0000000000000000000000000000000000000000") {
+      const depositAmount = new BigNumber(
+        web3.utils.toWei(config.alice_eth_deposit_amount, "ether")
+      );
+      const depositTx = await transaction.encodeDeposit(
+        config.alice_eth_address,
+        depositAmount,
+        options["deposit"]
+      );
       console.log(
         `Depositing ${web3.utils.fromWei(
           depositAmount.toString(),
           "ether"
-        )} ETH from the rootchain to the childchain`
+        )} ETH for Alice from the rootchain to the childchain`
       );
-      const transactionReceipt = await rootChain.depositEth({
+      const receipt = await rootChain.depositEth({
         depositTx,
         amount: depositAmount,
         txOptions: aliceTxOptions
       });
-      console.log("Deposit successful: ", transactionReceipt.transactionHash);
+      console.log("Deposit successful: ", receipt.transactionHash);
       console.log("Funds can be spent after cool down of 10 ETH blocks");
-      return transactionReceipt;
+      return receipt;
     } else {
+      const depositAmount = config.alice_erc20_deposit_amount;
+      const depositTx = await transaction.encodeDeposit(
+        config.alice_eth_address,
+        depositAmount,
+        options["deposit"]
+      );
+      console.log(
+        `Approving ERC20 token ${options["deposit"]} for deposit from Alice`
+      );
+      const receipt1 = await rootChain.approveToken({
+        erc20Address: config.erc20_contract,
+        amount: config.alice_erc20_deposit_amount,
+        txOptions: aliceTxOptions
+      });
+      console.log("ERC20 approved: ", receipt1.transactionHash);
+
+      console.log(
+        `Depositing ${config.alice_erc20_deposit_amount} ERC20 from the rootchain to the childchain`
+      );
+      const receipt2 = await rootChain.depositToken({
+        depositTx,
+        txOptions: aliceTxOptions
+      });
+      console.log("Deposit successful: ", receipt2.transactionHash);
+      printObject("Deposit receipt", receipt2);
+      return receipt2;
     }
   } else if (options["transaction"]) {
     const txRaw = fs.readFileSync(options["transaction"]);
