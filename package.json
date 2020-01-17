@@ -4,9 +4,14 @@
   "description": "",
   "main": "omg-js-cli",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "clean": "rm -rf dist",
+    "build": "tsc"
   },
   "dependencies": {
+    "@omisego/omg-js": "^3.0.0-alpha.13",
+    "@types/jest": "^24.9.0",
+    "@types/node": "^13.1.7",
     "command-line-args": "^5.1.1",
     "command-line-usage": "^6.1.0",
     "dotenv": "^8.2.0",
@@ -17,14 +22,18 @@
     "human-standard-token-abi": "^2.0.0",
     "json-bigint": "^0.3.0",
     "lerna": "^3.19.0",
-    "omg-js": "git://github.com/omisego/omg-js.git#v0.3",
     "request-promise-native": "^1.0.8",
     "rlp": "^2.2.4",
+    "ts-jest": "^24.3.0",
+    "web3": "1.2.2",
     "webpack": "^4.17.1",
-    "webpack-cli": "^3.1.0",
-    "web3": "1.2.2"
+    "webpack-cli": "^3.1.0"
   },
   "keywords": [],
   "author": "Gerhard Wagner",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^24.9.0",
+    "typescript": "^3.7.5"
+  }
 }

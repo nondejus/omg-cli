@@ -1,0 +1,19 @@
+{
+  "transactionType": 1,
+  "inputs": [
+    {
+      "blknum": 10000,
+      "txindex": 0,
+      "oindex": 0
+    }
+  ],
+  "outputs": [
+    {
+      "outputType": 1,
+      "outputGuard": "0xd42b31665b93c128541c8b89a0e545afb08b7dd8",
+      "currency": "0x0000000000000000000000000000000000000000",
+      "amount": 1
+    }
+  ],
+  "metadata": "0x0000000000000000000000000000000000000000000000000000000000000000"
+}

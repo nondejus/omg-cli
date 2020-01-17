@@ -1,7 +1,7 @@
 const chalk = require("chalk");
-const fs = require("fs");
+const fs2 = require("fs");
 
-const banner = fs.readFileSync("./static/header.txt").toString();
+const banner = fs2.readFileSync("./static/header.txt").toString();
 
 const optionDefinitions = [
   {
@@ -24,6 +24,12 @@ const optionDefinitions = [
         type: String,
         typeLabel: "{underline file}",
         description: "Encode a tx from a json file"
+      },
+      {
+        name: "deposit",
+        type: String,
+        typeLabel: "{underline address}",
+        description: "Deposit ETH/Tokens from Alice's account"
       },
       {
         name: "transaction",
@@ -75,10 +81,16 @@ const optionDefinitions = [
         description: "Start an IN-Flight exit"
       },
       {
+        name: "addExitQueue",
+        type: String,
+        typeLabel: "{underline string}",
+        description: "Add an exist queue for ETH/token"
+      },
+      {
         name: "processExits",
         type: String,
         typeLabel: "{underline string}",
-        description: "Process exits for a specific token"
+        description: "Process exits for ETH/token"
       },
       {
         name: "help",
