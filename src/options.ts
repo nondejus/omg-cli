@@ -32,6 +32,12 @@ const optionDefinitions = [
         description: "Deposit ETH/Tokens from Alice's account"
       },
       {
+        name: "amount",
+        type: String,
+        typeLabel: "{underline string}",
+        description: "Specify the amount of ETH/Tokens that should be deposited"
+      },
+      {
         name: "transaction",
         alias: "t",
         type: String,
@@ -49,6 +55,11 @@ const optionDefinitions = [
         name: "getExitPeriod",
         type: Boolean,
         description: "Get minimum exit period in seconds"
+      },
+      {
+        name: "getEvents",
+        type: Boolean,
+        description: "Get a list of Byzantine events"
       },
       {
         name: "getSEData",
@@ -75,9 +86,15 @@ const optionDefinitions = [
         description: "Challenge a standard exit"
       },
       {
-        name: "startIFE",
+        name: "getIFEData",
         type: String,
         typeLabel: "{underline IFEDataFile}",
+        description: "Get IN-Flight exit data"
+      },
+      {
+        name: "startIFE",
+        type: String,
+        typeLabel: "{underline IFEExitDataFile}",
         description: "Start an IN-Flight exit"
       },
       {

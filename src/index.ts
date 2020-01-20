@@ -5,7 +5,8 @@ const commandLineArgs = require("command-line-args");
 const commandLineUsage = require("command-line-usage");
 
 const fs = require("fs");
-const BigNumber = require("bn.js");
+const BigNumber = require("bignumber.js");
+const BN = require("bn.js");
 
 const config = require("../config.js");
 const optionDefs = require("./options");
@@ -61,34 +62,45 @@ async function omgJSMain(options: any) {
     const encodedTx = transaction.encode(tx);
     console.log(encodedTx);
   } else if (options["deposit"]) {
+    let amount;
+
     if (options["deposit"] == "0x0000000000000000000000000000000000000000") {
-      const depositAmount = new BigNumber(
-        web3.utils.toWei(config.alice_eth_deposit_amount, "ether")
-      );
+      if (!options["amount"]) {
+        amount = new BigNumber(
+          web3.utils.toWei(config.alice_eth_deposit_amount, "ether")
+        );
+      } else {
+        amount = options["amount"];
+      }
       const depositTx = await transaction.encodeDeposit(
         config.alice_eth_address,
-        depositAmount,
+        amount,
         options["deposit"]
       );
       console.log(
         `Depositing ${web3.utils.fromWei(
-          depositAmount.toString(),
+          amount.toString(),
           "ether"
         )} ETH for Alice from the rootchain to the childchain`
       );
       const receipt = await rootChain.depositEth({
         depositTx,
-        amount: depositAmount,
+        amount: amount,
         txOptions: aliceTxOptions
       });
-      console.log("Deposit successful: ", receipt.transactionHash);
+      console.log("ETH deposit successful");
+      printEtherscanLink(receipt.transactionHash);
       console.log("Funds can be spent after cool down of 10 ETH blocks");
       return receipt;
     } else {
-      const depositAmount = config.alice_erc20_deposit_amount;
+      if (!options["amount"]) {
+        amount = config.alice_erc20_deposit_amount;
+      } else {
+        amount = options["amount"];
+      }
       const depositTx = await transaction.encodeDeposit(
         config.alice_eth_address,
-        depositAmount,
+        amount,
         options["deposit"]
       );
       console.log(
@@ -96,7 +108,7 @@ async function omgJSMain(options: any) {
       );
       const receipt1 = await rootChain.approveToken({
         erc20Address: config.erc20_contract,
-        amount: config.alice_erc20_deposit_amount,
+        amount: amount,
         txOptions: aliceTxOptions
       });
       console.log("ERC20 approved: ", receipt1.transactionHash);
@@ -108,8 +120,8 @@ async function omgJSMain(options: any) {
         depositTx,
         txOptions: aliceTxOptions
       });
-      console.log("Deposit successful: ", receipt2.transactionHash);
-      printObject("Deposit receipt", receipt2);
+      console.log("Token deposit successful");
+      printEtherscanLink(receipt2.transactionHash);
       return receipt2;
     }
   } else if (options["transaction"]) {
@@ -130,6 +142,7 @@ async function omgJSMain(options: any) {
 
     let receipt = await childChain.submitTransaction(signedTxn);
     printObject("Tx receipt", receipt);
+    printOMGBlockExplorerLink(receipt.txhash);
     return receipt;
   } else if (options["getSEData"]) {
     const utxo = transaction.decodeUtxoPos(options["getSEData"]);
@@ -147,13 +160,22 @@ async function omgJSMain(options: any) {
       txOptions: aliceTxOptions
     });
 
-    printObject("Tx receipt for PaymentExitGame.startExit()", receipt);
+    printEtherscanLink(receipt.transactionHash);
     return receipt;
+  } else if (options["getSEChallengeData"]) {
+    const utxoPos = parseInt(options["getSEChallengeData"]);
+    let challengeData = await childChain.getChallengeData(utxoPos);
+
+    const number = new BigNumber(challengeData.exit_id);
+    challengeData.exit_id = number.toFixed();
+    console.log(JSON.stringify(challengeData, null, 2));
   } else if (options["challengeSE"]) {
     const challengeDataRaw = fs.readFileSync(options["challengeSE"]);
     const challengeData = JSON.parse(challengeDataRaw);
 
-    const receipt = rootChain.challengeStandardExit({
+    challengeData.exit_id = new BN(challengeData.exit_id);
+
+    const receipt = await rootChain.challengeStandardExit({
       standardExitId: challengeData.exit_id,
       exitingTx: challengeData.exiting_tx,
       challengeTx: challengeData.txbytes,
@@ -162,25 +184,39 @@ async function omgJSMain(options: any) {
       txOptions: bobTxOptions
     });
 
-    printObject(
-      "Tx receipt for PaymentExitGame.challengeStandardExit()",
-      receipt
-    );
+    printEtherscanLink(receipt.transactionHash);
     return receipt;
-  } else if (options["startIFE"]) {
-    const txRaw = fs.readFileSync(options["startIFE"]);
+  } else if (options["getIFEData"]) {
+    const txRaw = fs.readFileSync(options["getIFEData"]);
     const tx = JSON.parse(txRaw);
-    const IFEData = await childChain.inFlightExitGetData(
-      transaction.encode(tx)
-    );
-    console.log(IFEData);
-  } else if (options["getSEChallengeData"]) {
-    let challengeData = await childChain.getChallengeData(
-      options["getSEChallengeData"]
+    const typedData = transaction.getTypedData(
+      tx,
+      config.rootchain_plasma_contract_address
     );
 
-    challengeData.exit_id = challengeData.exit_id.toFixed();
-    console.log(JSON.stringify(challengeData, null, 2));
+    const privateKeys = new Array(tx.inputs.length).fill(
+      config.alice_eth_address_private_key
+    );
+
+    const signatures = childChain.signTransaction(typedData, privateKeys);
+    const signedTxn = childChain.buildSignedTransaction(typedData, signatures);
+
+    const IFEData = await childChain.inFlightExitGetData(signedTxn);
+    printObject("", IFEData);
+  } else if (options["startIFE"]) {
+    const txRaw = fs.readFileSync(options["startIFE"]);
+    const exitData = JSON.parse(txRaw);
+
+    const receipt = await rootChain.startInFlightExit({
+      inFlightTx: exitData.in_flight_tx,
+      inputTxs: exitData.input_txs,
+      inputUtxosPos: exitData.input_utxos_pos,
+      inputTxsInclusionProofs: exitData.input_txs_inclusion_proofs,
+      inFlightTxSigs: exitData.in_flight_tx_sigs,
+      txOptions: aliceTxOptions
+    });
+    printEtherscanLink(receipt.transactionHash);
+    return receipt;
   } else if (options["processExits"]) {
     const receipt = await rootChain.processExits({
       token: options["processExits"],
@@ -189,7 +225,8 @@ async function omgJSMain(options: any) {
       txOptions: aliceTxOptions
     });
 
-    printObject("Tx receipt for PlasmaFramework.processExits()", receipt);
+    console.log(`Exits for queue ${options["processExits"]} processed`);
+    printEtherscanLink(receipt.transactionHash);
     return receipt;
   } else if (options["addExitQueue"]) {
     const hasToken = await rootChain.hasToken(options["addExitQueue"]);
@@ -199,13 +236,23 @@ async function omgJSMain(options: any) {
         token: options["addExitQueue"],
         txOptions: aliceTxOptions
       });
-      printObject("Tx receipt for PlasmaFramework.addExitQueue()", receipt);
+      printEtherscanLink(receipt.transactionHash);
       return receipt;
     } else {
       console.log(
         `Exit Queue for ${options["addExitQueue"]} has already been added`
       );
     }
+  } else if (options["getEvents"]) {
+    const response = await childChain.status();
+
+    if (response["byzantine_events"].length) {
+      printObject("Byzantine events", response["byzantine_events"]);
+    } else {
+      console.log("No Byzantine events");
+    }
+
+    return response;
   } else {
     const usage = commandLineUsage(optionDefs["optionDefinitions"]);
     console.log(usage);
@@ -215,6 +262,16 @@ async function omgJSMain(options: any) {
 
 function printObject(message: String, o: any) {
   console.log(`${message}\n ${JSON.stringify(o, undefined, 2)}`);
+}
+
+async function printEtherscanLink(hash: string) {
+  console.log(`TX on Etherscan: https://ropsten.etherscan.io/tx/${hash}`);
+}
+
+async function printOMGBlockExplorerLink(hash: string) {
+  console.log(
+    `TX on OMG Network: ${config.block_explorer_url}transaction/${hash}`
+  );
 }
 
 omgJSMain(options);
