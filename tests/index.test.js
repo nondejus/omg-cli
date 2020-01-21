@@ -60,7 +60,6 @@ test("Deposit some ETH from Alice's address", async () => {
 
   const receipt = await omgJSMain(cliOptions);
   expect(receipt.transactionHash.length).toBeGreaterThan(0);
-  printEtherscanLink(receipt.transactionHash);
 });
 
 test("Send a tx from Alice to Bob", async () => {
@@ -136,7 +135,7 @@ test("Process exits for ETH", async () => {
   expect(ret.transactionHash.length).toBeGreaterThan(0);
 });
 
-test.only("Get events", async () => {
+test("Get events", async () => {
   console.log = jest.fn();
   const cliOptions = {
     getEvents: true

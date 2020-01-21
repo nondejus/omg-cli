@@ -66,7 +66,7 @@ async function omgJSMain(options: any) {
 
     if (options["deposit"] == "0x0000000000000000000000000000000000000000") {
       if (!options["amount"]) {
-        amount = new BigNumber(
+        amount = new BN(
           web3.utils.toWei(config.alice_eth_deposit_amount, "ether")
         );
       } else {
@@ -217,6 +217,101 @@ async function omgJSMain(options: any) {
     });
     printEtherscanLink(receipt.transactionHash);
     return receipt;
+  } else if (options["piggybackIFEOnOutput"]) {
+    const receipt = await rootChain.piggybackInFlightExitOnOutput({
+      inFlightTx: options["piggybackIFEOnOutput"],
+      outputIndex: options["outputIndex"],
+      txOptions: aliceTxOptions
+    });
+    printEtherscanLink(receipt.transactionHash);
+    return receipt;
+  } else if (options["piggybackIFEOnInput"]) {
+    const receipt = await rootChain.piggybackInFlightExitOnInput({
+      inFlightTx: options["piggybackIFEOnInput"],
+      inputIndex: options["inputIndex"],
+      txOptions: aliceTxOptions
+    });
+    printEtherscanLink(receipt.transactionHash);
+    return receipt;
+  } else if (options["getIFEId"]) {
+    const exitId = await rootChain.getInFlightExitId({
+      txBytes: options["getIFEId"]
+    });
+    console.log("Exit id: ", exitId);
+    return exitId;
+  } else if (options["challengeIFEInputSpent"]) {
+    /*
+    const challengeData = await childChain.inFlightExitGetInputChallengeData(options["challengeIFEInputSpent"], 0)
+
+    const receipt = await rootChain.challengeInFlightExitInputSpent({
+      inFlightTx: inflightExit.txbytes,
+      inFlightTxInputIndex: 0,
+      challengingTx: unsignCarolTx,
+      challengingTxInputIndex: 0,
+      challengingTxWitness: carolTxDecoded.sigs[0],
+      inputTx: unsignInput,
+      inputUtxoPos: utxoPosOutput,
+      txOptions: {
+        privateKey: carolAccount.privateKey,
+        from: carolAccount.address
+      }
+    });*/
+  } else if (options["challengeIFEOutputSpent"]) {
+    /*
+    const challengeData = await childChain.inFlightExitGetOutputChallengeData(
+      options["challengeIFEOutputSpent"],
+      0
+    );
+
+    const receipt = await rootChain.challengeInFlightExitOutputSpent({
+      inFlightTx: challengeData.in_flight_txbytes,
+      inFlightTxInclusionProof: challengeData.in_flight_proof,
+      inFlightTxOutputPos: challengeData.in_flight_output_pos,
+      challengingTx: challengeData.spending_txbytes,
+      challengingTxInputIndex: challengeData.spending_input_index,
+      challengingTxWitness: challengeData.spending_sig,
+      txOptions: aliceTxOptions
+    });
+    printEtherscanLink(receipt.transactionHash);
+    return receipt;*/
+  } else if (options["challengeIFENotCanonical"]) {
+    /*
+    const competitor = await childChain.inFlightExitGetCompetitor(
+      options["challengeIFENotCanonical"]
+    );
+
+    const receipt = await rootChain.challengeInFlightExitNotCanonical({
+      inputTx: competitor.input_tx,
+      inputUtxoPos: competitor.input_utxo_pos,
+      inFlightTx: competitor.in_flight_txbytes,
+      inFlightTxInputIndex: competitor.in_flight_input_index,
+      competingTx: competitor.competing_txbytes,
+      competingTxInputIndex: competitor.competing_input_index,
+      competingTxPos: competitor.competing_tx_pos,
+      competingTxInclusionProof: competitor.competing_proof,
+      competingTxWitness: competitor.competing_sig,
+      txOptions: aliceTxOptions
+    });
+    printEtherscanLink(receipt.transactionHash);
+    return receipt;
+    */
+  } else if (options["respondToNonCanonicalChallenge"]) {
+    /*
+    const proof = await childChain.inFlightExitProveCanonical(
+      options["challengeIFENotCanonical"]
+    );
+
+    // Bob responds to the challenge
+    const receipt = await rootChain.respondToNonCanonicalChallenge({
+      inFlightTx: proof.in_flight_txbytes,
+      inFlightTxPos: proof.in_flight_tx_pos,
+      inFlightTxInclusionProof: proof.in_flight_proof,
+      txOptions: aliceTxOptions
+    });
+    printEtherscanLink(receipt.transactionHash);
+    return receipt;
+    */
+  } else if (options["deleteNonPiggybackedIFE"]) {
   } else if (options["processExits"]) {
     const receipt = await rootChain.processExits({
       token: options["processExits"],
@@ -243,13 +338,27 @@ async function omgJSMain(options: any) {
         `Exit Queue for ${options["addExitQueue"]} has already been added`
       );
     }
-  } else if (options["getEvents"]) {
+  } else if (options["getExitQueue"]) {
+    const queue = await rootChain.getExitQueue(options["getExitQueue"]);
+    printObject("", queue);
+    return queue;
+  } else if (options["getByzantineEvents"]) {
     const response = await childChain.status();
 
     if (response["byzantine_events"].length) {
       printObject("Byzantine events", response["byzantine_events"]);
     } else {
       console.log("No Byzantine events");
+    }
+
+    return response;
+  } else if (options["getIFEs"]) {
+    const response = await childChain.status();
+
+    if (response["in_flight_exits"].length) {
+      printObject("IFEs:", response["in_flight_exits"]);
+    } else {
+      console.log("No IFEs");
     }
 
     return response;
@@ -264,11 +373,11 @@ function printObject(message: String, o: any) {
   console.log(`${message}\n ${JSON.stringify(o, undefined, 2)}`);
 }
 
-async function printEtherscanLink(hash: string) {
+function printEtherscanLink(hash: string) {
   console.log(`TX on Etherscan: https://ropsten.etherscan.io/tx/${hash}`);
 }
 
-async function printOMGBlockExplorerLink(hash: string) {
+function printOMGBlockExplorerLink(hash: string) {
   console.log(
     `TX on OMG Network: ${config.block_explorer_url}transaction/${hash}`
   );

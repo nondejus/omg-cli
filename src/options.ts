@@ -9,7 +9,7 @@ const optionDefinitions = [
     raw: true
   },
   {
-    header: "Options",
+    header: "General",
     optionList: [
       {
         name: "decode",
@@ -26,6 +26,46 @@ const optionDefinitions = [
         description: "Encode a tx from a json file"
       },
       {
+        name: "getExitPeriod",
+        type: Boolean,
+        description: "Get minimum exit period in seconds"
+      },
+      {
+        name: "getByzantineEvents",
+        type: Boolean,
+        description: "Get a list of Byzantine events"
+      },
+      {
+        name: "processExits",
+        type: String,
+        typeLabel: "{underline string}",
+        description: "Process exits for ETH/token"
+      },
+      {
+        name: "addExitQueue",
+        type: String,
+        typeLabel: "{underline string}",
+        description: "Add an exist queue for ETH/token"
+      },
+      {
+        name: "getExitQueue",
+        type: String,
+        typeLabel: "{underline string}",
+        description: "Get items from the exit queue for ETH/token"
+      },
+      {
+        name: "help",
+        description: "Print this usage guide.",
+        alias: "h",
+        typeLabel: " ",
+        defaultOption: true
+      }
+    ]
+  },
+  {
+    header: "Deposit",
+    optionList: [
+      {
         name: "deposit",
         type: String,
         typeLabel: "{underline address}",
@@ -36,7 +76,12 @@ const optionDefinitions = [
         type: String,
         typeLabel: "{underline string}",
         description: "Specify the amount of ETH/Tokens that should be deposited"
-      },
+      }
+    ]
+  },
+  {
+    header: "Plasma",
+    optionList: [
       {
         name: "transaction",
         alias: "t",
@@ -50,17 +95,12 @@ const optionDefinitions = [
         type: String,
         typeLabel: "{underline string}",
         description: "Get all UTXOs for an owner address"
-      },
-      {
-        name: "getExitPeriod",
-        type: Boolean,
-        description: "Get minimum exit period in seconds"
-      },
-      {
-        name: "getEvents",
-        type: Boolean,
-        description: "Get a list of Byzantine events"
-      },
+      }
+    ]
+  },
+  {
+    header: "Standard Exit",
+    optionList: [
       {
         name: "getSEData",
         type: String,
@@ -84,6 +124,16 @@ const optionDefinitions = [
         type: String,
         typeLabel: "{underline challengeDataFile}",
         description: "Challenge a standard exit"
+      }
+    ]
+  },
+  {
+    header: "In-Flight Exit",
+    optionList: [
+      {
+        name: "getIFEs",
+        type: Boolean,
+        description: "Get ongoing IN-Flight exits"
       },
       {
         name: "getIFEData",
@@ -98,23 +148,68 @@ const optionDefinitions = [
         description: "Start an IN-Flight exit"
       },
       {
-        name: "addExitQueue",
+        name: "getIFEId",
         type: String,
         typeLabel: "{underline string}",
-        description: "Add an exist queue for ETH/token"
+        description: "Get the IN-Flight exit id for an ongoing IN-Flight tx"
       },
       {
-        name: "processExits",
+        name: "piggybackIFEOnOutput",
         type: String,
         typeLabel: "{underline string}",
-        description: "Process exits for ETH/token"
+        description:
+          "Piggy back an IN-Flight tx. Additionally specify the outputIndex"
       },
       {
-        name: "help",
-        description: "Print this usage guide.",
-        alias: "h",
-        typeLabel: " ",
-        defaultOption: true
+        name: "outputIndex",
+        type: String,
+        typeLabel: "{underline string}",
+        description: "Output index of a tx"
+      },
+      {
+        name: "piggybackIFEOnInput",
+        type: String,
+        typeLabel: "{underline string}",
+        description:
+          "Piggy back an IN-Flight tx. Additionally specify the inputIndex"
+      },
+      {
+        name: "inputIndex",
+        type: String,
+        typeLabel: "{underline string}",
+        description: "Input index of a tx"
+      },
+      {
+        name: "challengeIFEInputSpent",
+        type: String,
+        typeLabel: "{underline string}",
+        description:
+          "Challenge an input from an IN-Flight tx. Additionally specify the inputIndex."
+      },
+      {
+        name: "challengeIFEOutputSpent",
+        type: String,
+        typeLabel: "{underline string}",
+        description:
+          "Challenge an output from an IN-Flight tx. Additionally specify the outputIndex."
+      },
+      {
+        name: "challengeIFENotCanonical",
+        type: String,
+        typeLabel: "{underline string}",
+        description: "Challenge an IN-Flight tx as non-canonical."
+      },
+      {
+        name: "respondToNonCanonicalChallenge",
+        type: String,
+        typeLabel: "{underline string}",
+        description: "Respond to a non-canonical challenge with a tx."
+      },
+      {
+        name: "deleteNonPiggybackedIFE",
+        type: String,
+        typeLabel: "{underline string}",
+        description: "Todo"
       }
     ]
   }
