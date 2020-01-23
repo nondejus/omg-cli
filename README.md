@@ -24,9 +24,24 @@ In order to use `omg-cli` you need to setup a configuration and create `.env`. Y
 - `ALICE_ETH_ADDRESS` `ALICE_ETH_ADDRESS_PRIVATE_KEY` `BOB_ETH_ADDRESS` `BOB_ETH_ADDRESS_PRIVATE_KEY`: Create two accounts and fund them with sufficient tokens/ETH. `omg-cli` uses them per default to interact with the ETH network. 
    
 
-### Getting started
+## Documentation and where to learn more 
 
-Any client that interacts with the OMG network communicates with two components:
+Any client that interacts with the OMG network communicates with two components
 
-- [Watcher](https://github.com/omisego/elixir-omg): This is the main point from where the client retrieves information about the OMG network. It helps clients for example to calculate accounts balances, compose valid transactions and forward them to the child chain and it also emits security events about the network. A watcher is a trusted component and users should run their own for the same reasons they should run their own ETH or BTC nodes. More information on what the watcher does can be found in the [architectors docs](https://github.com/omisego/elixir-omg/blob/master/docs/architecture.md). Also checkout the [Swagger API specs](https://developer.omisego.co/elixir-omg/) for further information around watchers end points.
-- [Plasma contracts](https://github.com/omisego/plasma-contracts):
+### [Watcher](https://github.com/omisego/elixir-omg)
+
+This is the main point from where the client retrieves information about the OMG network. It helps clients for example to calculate accounts balances, compose valid transactions and forward them to the child chain and it also emits security events about the network. A watcher is a trusted component and users should run their own for the same reasons they should run their own ETH or BTC nodes. More information on what the watcher does can be found in the [architecture docs](https://github.com/omisego/elixir-omg/blob/master/docs/architecture.md). Also checkout the [Swagger API specs](https://developer.omisego.co/elixir-omg/) for further information around watchers end points.
+
+### [Plasma contracts](https://github.com/omisego/plasma-contracts)
+
+The plasma contracts are the bridge between the Ethereum and OMG network. They facilitate deposit and withdrawals as well as allow the operator to trigger specific actions e.g. update the bond size or add a new transaction types. State changing public functions that are used by `omg-cli` are:
+
+- Vaults: [deposit ETH](https://github.com/omisego/plasma-contracts/blob/master/plasma_framework/docs/contracts/EthVault.md#deposit) and [deposit ERC20 tokens](https://github.com/omisego/plasma-contracts/blob/master/plasma_framework/docs/contracts/Erc20Vault.md#deposit).
+- PaymentExitGame: The following functions are part of the exit game flows: `startInFlightExit`, `piggybackInFlightExitOnInput`, `piggybackInFlightExitOnOutput`, `challengeInFlightExitNotCanonical`, `respondToNonCanonicalChallenge`, `challengeInFlightExitInputSpent`, `challengeInFlightExitOutputSpent` and `deleteNonPiggybackedInFlightExit`. See the [integration doc chapter](https://github.com/omisego/plasma-contracts/blob/master/plasma_framework/docs/integration-docs/integration-doc.md#playing-the-payment-exit-game) for more info. 
+- PlasmaFramework: [process SE](https://github.com/omisego/plasma-contracts/blob/master/plasma_framework/docs/integration-docs/integration-doc.md#processing-a-standard-exit) [process IFE](https://github.com/omisego/plasma-contracts/blob/master/plasma_framework/docs/integration-docs/integration-doc.md#processing-an-in-flight-exit)
+
+Maintainer and authority specific functions are not covered.
+
+
+
+
