@@ -5,18 +5,14 @@ const config = {
   geth_url: process.env.GETH_URL,
   watcher_url: process.env.WATCHER_URL,
   watcher_proxy_url: process.env.WATCHER_PROXY_URL,
-  rootchain_plasma_contract_address: hexPrefix(process.env.PLASMA_FRAMEWORK),
+  rootchain_plasma_contract_address: process.env.PLASMA_FRAMEWORK,
   erc20_contract: process.env.ERC20_CONTRACT
-    ? hexPrefix(process.env.ERC20_CONTRACT)
+    ? process.env.ERC20_CONTRACT
     : undefined,
-  alice_eth_address: hexPrefix(process.env.ALICE_ETH_ADDRESS),
-  alice_eth_address_private_key: hexPrefix(
-    process.env.ALICE_ETH_ADDRESS_PRIVATE_KEY
-  ),
-  bob_eth_address: hexPrefix(process.env.BOB_ETH_ADDRESS),
-  bob_eth_address_private_key: hexPrefix(
-    process.env.BOB_ETH_ADDRESS_PRIVATE_KEY
-  ),
+  alice_eth_address: process.env.ALICE_ETH_ADDRESS,
+  alice_eth_address_private_key: process.env.ALICE_ETH_ADDRESS_PRIVATE_KEY,
+  bob_eth_address: process.env.BOB_ETH_ADDRESS,
+  bob_eth_address_private_key: process.env.BOB_ETH_ADDRESS_PRIVATE_KEY,
   alice_eth_deposit_amount: process.env.ALICE_ETH_DEPOSIT_AMOUNT || "0.01",
   alice_erc20_deposit_amount: process.env.ALICE_ERC20_DEPOSIT_AMOUNT || "20",
   alice_eth_transfer_amount: process.env.ALICE_ETH_TRANSFER_AMOUNT || "0.005",
