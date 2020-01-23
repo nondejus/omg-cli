@@ -36,9 +36,13 @@ const rootChain = new RootChain({
   plasmaContractAddress: config.rootchain_plasma_contract_address
 });
 
-const options = commandLineArgs(
-  optionDefs["optionDefinitions"][1]["optionList"]
-);
+let optionsLists: Object[] = [];
+optionDefs["optionDefinitions"].shift();
+for (const section of optionDefs["optionDefinitions"]) {
+  optionsLists = optionsLists.concat(section["optionList"]);
+}
+
+const options = commandLineArgs(optionsLists);
 
 async function omgJSMain(options: any) {
   //console.log(JSON.stringify(options, undefined, 2));
