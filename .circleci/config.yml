@@ -11,6 +11,3 @@ jobs:
       - run:
           name: build
           command: npm run build
-      - run:
-          name: omg-cli help
-          command: ./omg-cli --help
