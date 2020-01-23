@@ -7,10 +7,22 @@ This is a command line tool to interact with the OMG network and it's based on [
 ### Installation
 
 1. Checkout the repository
-2. Install `node` if you have not already. omg-cli has been tested with `node` 10.x but should work with other versions. Have not tested it though.
-3. Run `npm install`
+2. Install `node` if you have not already. `omg-cli` has been tested with `node` 10.x but should work with other versions. Have not tested it though.
+3. Run installation `npm install` 
+4. Run build script `npm run build`
 
 ### Setup
+
+In order to use `omg-cli` you need to setup a configuration and create `.env`. You can copy [.env.template](./.env.template)) and use it as a template. Important parameters are:  
+
+- `WATCHER_URL`: Watcher info URL 
+- `PLASMA_FRAMEWORK`: [PlasmaFramework](https://github.com/omisego/plasma-contracts/blob/master/plasma_framework/docs/contracts/PlasmaFramework.md) contract address 
+- `BLOCKEXPLORER_URL`: [OMG network block explorer](https://github.com/omisego/blockexplorer)
+- `WATCHER_PROXY_URL`: Set a HTTP/HTTPS proxy for further inspection of requests to the watcher
+- `GETH_URL`: ETH node (for testing environment set Ropsten as the default)
+- `ERC20_CONTRACT`: For using ERC20 tokens on the network make sure you have some tokens available. You can use [token.sol](./tests/sol/token.sol) to generate some quickly. 
+- `ALICE_ETH_ADDRESS` `ALICE_ETH_ADDRESS_PRIVATE_KEY` `BOB_ETH_ADDRESS` `BOB_ETH_ADDRESS_PRIVATE_KEY`: Create two accounts and fund them with sufficient tokens/ETH. `omg-cli` uses them per default to interact with the ETH network. 
+   
 
 ### Getting started
 
