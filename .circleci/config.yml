@@ -11,3 +11,6 @@ jobs:
       - run:
           name: build
           command: npm run build
+      - run:
+          name: "Run linter"
+          command: npm run linter

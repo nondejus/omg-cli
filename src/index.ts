@@ -316,6 +316,7 @@ async function omgJSMain(options: any) {
     return receipt;
     */
   } else if (options["deleteNonPiggybackedIFE"]) {
+    //
   } else if (options["processExits"]) {
     const receipt = await rootChain.processExits({
       token: options["processExits"],

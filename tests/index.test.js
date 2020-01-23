@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const fs = require("fs");
 const { omgJSMain, config } = require("../src/index");
 const { transaction } = require("@omisego/omg-js-util/src");
