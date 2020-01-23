@@ -6,8 +6,8 @@ jobs:
     steps:
       - checkout
       - run:
-        name: install
-        command: npm install
+          name: install
+          command: npm install
       - run:
-        name: omg-cli help
-        command: "./omg-cli --help"
+          name: omg-cli help
+          command: ./omg-cli --help
