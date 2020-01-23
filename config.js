@@ -3,7 +3,6 @@ require("dotenv").config();
 const config = {
   watcher_url: process.env.WATCHER_URL,
   watcher_proxy_url: process.env.WATCHER_PROXY_URL,
-  childchain_url: process.env.CHILDCHAIN_URL,
   rootchain_plasma_contract_address: process.env.ROOTCHAIN_CONTRACT,
   block_explorer_url: process.env.BLOCKEXPLORER_URL,
   geth_url: process.env.GETH_URL,
