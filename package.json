@@ -1,6 +1,6 @@
 {
-  "name": "omg-js-cli",
-  "version": "1.0.0",
+  "name": "omg-cli",
+  "version": "0.1.0",
   "description": "",
   "main": "omg-js-cli",
   "scripts": {
