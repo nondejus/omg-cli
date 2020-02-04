@@ -1,8 +1,12 @@
 /* eslint-disable no-undef */
 const fs = require("fs");
-const { omgJSMain, config } = require("../src/index");
+const { omgJSMain, config, web3 } = require("../src/index");
 const { transaction } = require("@omisego/omg-js-util/src");
+const awaitTransactionMined = require("await-transaction-mined");
+
 jest.setTimeout(200000);
+
+let processingUTXOPos = [];
 
 test("Decode a tx correctly and print it", () => {
   console.log = jest.fn();
@@ -54,16 +58,29 @@ test("RLP encode a tx from a JSON file", async () => {
   );
 });
 
-test("Deposit some ETH from Alice's address", async () => {
+test(`Deposit some ETH from cli params`, async () => {
   const cliOptions = {
-    deposit: transaction.ETH_CURRENCY
+    deposit: transaction.ETH_CURRENCY,
+    amount: 1
   };
 
-  const receipt = await omgJSMain(cliOptions);
-  expect(receipt.transactionHash.length).toBeGreaterThan(0);
+  const depositReceipt = await omgJSMain(cliOptions);
+  await awaitTransactionMined.awaitTx(web3, depositReceipt.transactionHash);
+  expect(depositReceipt.transactionHash.length).toBeGreaterThan(0);
 });
 
-test("Send a tx from Alice to Bob", async () => {
+test(`Deposit some ERC20 tokens from cli params`, async () => {
+  const cliOptions = {
+    deposit: config.erc20_contract,
+    setTxOptions: "./tx/txOptions-bob.json"
+  };
+
+  const depositReceipt = await omgJSMain(cliOptions);
+  await awaitTransactionMined.awaitTx(web3, depositReceipt.transactionHash);
+  expect(depositReceipt.transactionHash.length).toBeGreaterThan(0);
+});
+
+test("Send a tx on the plasma chain", async () => {
   const utxo = await getUnspentUTXO(
     config.alice_eth_address,
     transaction.ETH_CURRENCY
@@ -75,6 +92,8 @@ test("Send a tx from Alice to Bob", async () => {
 
   // Replace values with retrieved UTXO values
   tx.inputs[0].blknum = utxo.blknum;
+  tx.inputs[0].txindex = utxo.txindex;
+  tx.inputs[0].oindex = utxo.oindex;
   tx.outputs[0].outputGuard = utxo.owner;
   tx.outputs[0].currency = utxo.currency;
   tx.outputs[0].amount = parseInt(utxo.amount);
@@ -92,7 +111,7 @@ test("Send a tx from Alice to Bob", async () => {
   expect(ret.blknum).toBeGreaterThan(utxo.blknum);
 });
 
-test("Get SE data for an unspent UTXO of Alice", async () => {
+test("Get SE data for an unspent UTXO", async () => {
   const utxo = await getUnspentUTXO(
     config.alice_eth_address,
     transaction.ETH_CURRENCY
@@ -105,7 +124,7 @@ test("Get SE data for an unspent UTXO of Alice", async () => {
   expect(ret.proof.length).toBeGreaterThan(0);
 });
 
-test("Start SE for an unspent UTXO of Alice", async () => {
+test("Start SE for an unspent UTXO", async () => {
   const utxo = await getUnspentUTXO(
     config.alice_eth_address,
     transaction.ETH_CURRENCY
@@ -124,6 +143,7 @@ test("Start SE for an unspent UTXO of Alice", async () => {
   };
 
   const ret2 = await omgJSMain(cliOptions2);
+  await awaitTransactionMined.awaitTx(web3, ret2.transactionHash);
   expect(ret2.transactionHash.length).toBeGreaterThan(0);
 });
 
@@ -132,8 +152,9 @@ test("Process exits for ETH", async () => {
     processExits: transaction.ETH_CURRENCY
   };
 
-  const ret = await omgJSMain(cliOptions);
-  expect(ret.transactionHash.length).toBeGreaterThan(0);
+  const processReceipt = await omgJSMain(cliOptions);
+  await awaitTransactionMined.awaitTx(web3, processReceipt.transactionHash);
+  expect(processReceipt.transactionHash.length).toBeGreaterThan(0);
 });
 
 test("Get events", async () => {
@@ -147,22 +168,26 @@ test("Get events", async () => {
   expect(ret).toContain("Byzantine");
 });
 
-async function getUnspentUTXO(address, currency) {
+async function getUnspentUTXO(owner, currency) {
   console.log = jest.fn();
   const cliOptions1 = {
-    getUTXOs: address
+    getUTXOs: owner
   };
 
   await omgJSMain(cliOptions1);
   const ret = JSON.parse(console.log.mock.calls[0][0]);
 
-  if (currency) {
-    for (const utxo of ret) {
-      if (utxo.currency == currency) {
+  for (const utxo of ret) {
+    if (!processingUTXOPos.includes(utxo.utxo_pos)) {
+      if (currency) {
+        if (utxo.currency == currency) {
+          processingUTXOPos.push(utxo.utxo_pos);
+          return utxo;
+        }
+      } else {
         return utxo;
       }
     }
-  } else {
-    return ret[0];
   }
+  throw "No unspent UTXO found. Aborting test run.";
 }

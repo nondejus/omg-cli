@@ -1,30 +1,21 @@
 const { transaction } = require("@omisego/omg-js-util/src");
 const ChildChain = require("@omisego/omg-js-childchain/src/childchain");
 const RootChain = require("@omisego/omg-js-rootchain/src/rootchain");
+const txUtils = require("@omisego/omg-js-rootchain/src/txUtils");
+
 const commandLineArgs = require("command-line-args");
 const commandLineUsage = require("command-line-usage");
-
+const awaitTransactionMined = require("await-transaction-mined");
 const fs = require("fs");
 const BigNumber = require("bignumber.js");
 const BN = require("bn.js");
+const JSONBigNumber = require("json-bigint");
 
 const config = require("../config.js");
 const optionDefs = require("./options");
 
 const Web3 = require("web3");
-const web3 = new Web3(new Web3.providers.HttpProvider(config.geth_url));
-
-const aliceTxOptions = {
-  privateKey: config.alice_eth_address_private_key,
-  from: config.alice_eth_address,
-  gas: 6000000
-};
-
-const bobTxOptions = {
-  privateKey: config.bob_eth_address_private_key,
-  from: config.bob_eth_address,
-  gas: 6000000
-};
+const web3 = new Web3(new Web3.providers.HttpProvider(config.eth_node));
 
 const childChain = new ChildChain({
   watcherUrl: config.watcher_url,
@@ -33,7 +24,7 @@ const childChain = new ChildChain({
 
 const rootChain = new RootChain({
   web3,
-  plasmaContractAddress: config.rootchain_plasma_contract_address
+  plasmaContractAddress: config.plasmaframework_contract_address
 });
 
 let optionsLists: Object[] = [];
@@ -44,8 +35,21 @@ for (const section of optionDefs["optionDefinitions"]) {
 
 const options = commandLineArgs(optionsLists);
 
+const aliceTxOptions = {
+  privateKey: config.alice_eth_address_private_key,
+  from: config.alice_eth_address
+};
+
+let txOptions: any;
+
 async function omgJSMain(options: any) {
-  //console.log(JSON.stringify(options, undefined, 2));
+  if (options["setTxOptions"]) {
+    const txOptionsRaw = fs.readFileSync(options["setTxOptions"]);
+    txOptions = JSON.parse(txOptionsRaw);
+  } else {
+    txOptions = aliceTxOptions;
+  }
+  txOptions["gas"] = 6000000;
 
   if (options["decode"]) {
     const decodedTx = transaction.decodeTxBytes(options["decode"]);
@@ -66,81 +70,108 @@ async function omgJSMain(options: any) {
     const encodedTx = transaction.encode(tx);
     console.log(encodedTx);
   } else if (options["deposit"]) {
-    let amount;
+    let amount = options["amount"];
 
-    if (options["deposit"] == "0x0000000000000000000000000000000000000000") {
+    if (fs.existsSync(options["deposit"])) {
+      const txRaw = fs.readFileSync(options["deposit"]);
+      const tx = JSON.parse(txRaw);
+      const encodedTx = transaction.encode(tx);
+
+      const isEth = tx.outputs[0].currency === transaction.ETH_CURRENCY;
+      const { address, contract } = isEth
+        ? await rootChain.getEthVault()
+        : await rootChain.getErc20Vault();
+
+      if (!isEth) {
+        const approvalReceipt = await rootChain.approveToken({
+          erc20Address: config.erc20_contract,
+          amount: config.alice_erc20_deposit_amount,
+          txOptions: txOptions
+        });
+        console.log("ERC20 approval successful");
+        printEtherscanLink(approvalReceipt.transactionHash);
+      }
+
+      const txDetails = {
+        from: aliceTxOptions.from,
+        to: address,
+        ...(isEth ? { value: amount } : {}),
+        data: txUtils.getTxData(web3, contract, "deposit", encodedTx),
+        gas: txOptions.gas
+      };
+      const depositReceipt = await txUtils.sendTx({
+        web3: web3,
+        txDetails,
+        privateKey: txOptions.privateKey
+      });
+      if (isEth) {
+        console.log(`ETH deposit from raw tx successful`);
+      } else {
+        console.log(`Token deposit from raw tx successful`);
+      }
+
+      printEtherscanLink(depositReceipt.transactionHash);
+      return depositReceipt;
+    } else if (
+      options["deposit"] == "0x0000000000000000000000000000000000000000"
+    ) {
       if (!options["amount"]) {
         amount = new BN(
           web3.utils.toWei(config.alice_eth_deposit_amount, "ether")
         );
-      } else {
-        amount = options["amount"];
       }
-      const depositTx = await transaction.encodeDeposit(
-        config.alice_eth_address,
-        amount,
-        options["deposit"]
-      );
+
       console.log(
         `Depositing ${web3.utils.fromWei(
           amount.toString(),
           "ether"
-        )} ETH for Alice from the rootchain to the childchain`
+        )} ETH from ${txOptions.from} from the rootchain to the childchain`
       );
-      const receipt = await rootChain.depositEth({
-        depositTx,
+      const depositReceipt = await rootChain.deposit({
         amount: amount,
-        txOptions: aliceTxOptions
+        currency: options["deposit"],
+        txOptions: txOptions
       });
       console.log("ETH deposit successful");
-      printEtherscanLink(receipt.transactionHash);
+      printEtherscanLink(depositReceipt.transactionHash);
       console.log("Funds can be spent after cool down of 10 ETH blocks");
-      return receipt;
+      return depositReceipt;
     } else {
       if (!options["amount"]) {
         amount = config.alice_erc20_deposit_amount;
-      } else {
-        amount = options["amount"];
       }
-      const depositTx = await transaction.encodeDeposit(
-        config.alice_eth_address,
-        amount,
-        options["deposit"]
-      );
-      console.log(
-        `Approving ERC20 token ${options["deposit"]} for deposit from Alice`
-      );
-      const receipt1 = await rootChain.approveToken({
+
+      const approvalReceipt = await rootChain.approveToken({
         erc20Address: config.erc20_contract,
         amount: amount,
-        txOptions: aliceTxOptions
+        txOptions: txOptions
       });
-      console.log("ERC20 approved: ", receipt1.transactionHash);
+      console.log("ERC20 approved: ", approvalReceipt.transactionHash);
 
       console.log(
         `Depositing ${config.alice_erc20_deposit_amount} ERC20 from the rootchain to the childchain`
       );
-      const receipt2 = await rootChain.depositToken({
-        depositTx,
-        txOptions: aliceTxOptions
+      const depositReceipt = await rootChain.deposit({
+        amount: amount,
+        currency: options["deposit"],
+        txOptions: txOptions
       });
+
       console.log("Token deposit successful");
-      printEtherscanLink(receipt2.transactionHash);
-      return receipt2;
+      printEtherscanLink(depositReceipt.transactionHash);
+      return depositReceipt;
     }
   } else if (options["transaction"]) {
     const txRaw = fs.readFileSync(options["transaction"]);
     const tx = JSON.parse(txRaw);
     const typedData = transaction.getTypedData(
       tx,
-      config.rootchain_plasma_contract_address
+      config.plasmaframework_contract_address
     );
 
-    const privateKeys = new Array(tx.inputs.length).fill(
-      config.alice_eth_address_private_key
-    );
-
+    const privateKeys = new Array(tx.inputs.length).fill(txOptions.privateKey);
     const signatures = childChain.signTransaction(typedData, privateKeys);
+
     const signedTxn = childChain.buildSignedTransaction(typedData, signatures);
     printObject("Signed Tx", signedTxn);
 
@@ -161,7 +192,7 @@ async function omgJSMain(options: any) {
       utxoPos: exitData.utxo_pos,
       outputTx: exitData.txbytes,
       inclusionProof: exitData.proof,
-      txOptions: aliceTxOptions
+      txOptions: txOptions
     });
 
     printEtherscanLink(receipt.transactionHash);
@@ -185,7 +216,7 @@ async function omgJSMain(options: any) {
       challengeTx: challengeData.txbytes,
       inputIndex: challengeData.input_index,
       challengeTxSig: challengeData.sig,
-      txOptions: bobTxOptions
+      txOptions: txOptions
     });
 
     printEtherscanLink(receipt.transactionHash);
@@ -390,4 +421,4 @@ function printOMGBlockExplorerLink(hash: string) {
 
 omgJSMain(options);
 
-module.exports = { omgJSMain, config };
+module.exports = { omgJSMain, config, web3 };

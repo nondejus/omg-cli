@@ -4,15 +4,17 @@
   "description": "",
   "main": "omg-js-cli",
   "scripts": {
-    "test": "npx jest",
+    "test": "npx jest ",
     "clean": "rm -rf dist",
     "build": "npx tsc",
     "linter": "npx eslint --ext .js,.ts ./src ./tests"
   },
   "dependencies": {
-    "@omisego/omg-js": "^3.0.0-alpha.14",
+    "@omisego/omg-js": "^3.0.0-alpha.15",
     "@types/jest": "^24.9.0",
     "@types/node": "^13.1.7",
+    "await-transaction-mined": "^1.0.12",
+    "bignumber.js": "^9.0.0",
     "command-line-args": "^5.1.1",
     "command-line-usage": "^6.1.0",
     "dotenv": "^8.2.0",
@@ -21,7 +23,7 @@
     "ethereumjs-abi": "^0.6.8",
     "ethereumjs-util": "^6.2.0",
     "human-standard-token-abi": "^2.0.0",
-    "json-bigint": "^0.3.0",
+    "json-bigint": "git+https://git@github.com/omisego/json-bigint.git",
     "lerna": "^3.19.0",
     "request-promise-native": "^1.0.8",
     "rlp": "^2.2.4",

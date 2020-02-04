@@ -54,6 +54,12 @@ const optionDefinitions = [
         description: "Get items from the exit queue for ETH/token"
       },
       {
+        name: "setTxOptions",
+        type: String,
+        typeLabel: "{underline file}",
+        description: "Set tx options"
+      },
+      {
         name: "help",
         description: "Print this usage guide.",
         alias: "h",
