@@ -26,8 +26,10 @@ const rootChain = new RootChain({
 });
 
 let optionsLists: Object[] = [];
-optionDefs["optionDefinitions"].shift();
-for (const section of optionDefs["optionDefinitions"]) {
+for (const section of optionDefs["optionDefinitions"].slice(
+  1,
+  optionDefs["optionDefinitions"].length - 1
+)) {
   optionsLists = optionsLists.concat(section["optionList"]);
 }
 

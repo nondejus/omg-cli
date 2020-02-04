@@ -179,9 +179,9 @@ async function getUnspentUTXO(owner, currency) {
 
   for (const utxo of ret) {
     if (!processingUTXOPos.includes(utxo.utxo_pos)) {
+      processingUTXOPos.push(utxo.utxo_pos);
       if (currency) {
         if (utxo.currency == currency) {
-          processingUTXOPos.push(utxo.utxo_pos);
           return utxo;
         }
       } else {
