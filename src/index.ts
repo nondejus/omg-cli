@@ -5,11 +5,9 @@ const txUtils = require("@omisego/omg-js-rootchain/src/txUtils");
 
 const commandLineArgs = require("command-line-args");
 const commandLineUsage = require("command-line-usage");
-const awaitTransactionMined = require("await-transaction-mined");
 const fs = require("fs");
 const BigNumber = require("bignumber.js");
 const BN = require("bn.js");
-const JSONBigNumber = require("json-bigint");
 
 const config = require("../config.js");
 const optionDefs = require("./options");
