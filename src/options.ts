@@ -60,6 +60,12 @@ const optionDefinitions = [
         description: "Set tx options"
       },
       {
+        name: "autoChallenge",
+        type: Boolean,
+        description: "Auto challenge byzantine events",
+        typeLabel: " "
+      },
+      {
         name: "help",
         description: "Print this usage guide.",
         alias: "h",

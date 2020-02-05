@@ -27,6 +27,7 @@
     "lerna": "^3.19.0",
     "request-promise-native": "^1.0.8",
     "rlp": "^2.2.4",
+    "sleep": "^6.1.0",
     "ts-jest": "^24.3.0",
     "web3": "^1.2.5-rc.0",
     "webpack": "^4.17.1",

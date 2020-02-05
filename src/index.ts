@@ -12,6 +12,8 @@ const BN = require("bn.js");
 const config = require("../config.js");
 const optionDefs = require("./options");
 
+const sleep = require("sleep");
+
 const Web3 = require("web3");
 const web3 = new Web3(new Web3.providers.HttpProvider(config.eth_node));
 
@@ -28,7 +30,7 @@ const rootChain = new RootChain({
 let optionsLists: Object[] = [];
 for (const section of optionDefs["optionDefinitions"].slice(
   1,
-  optionDefs["optionDefinitions"].length - 1
+  optionDefs["optionDefinitions"].length
 )) {
   optionsLists = optionsLists.concat(section["optionList"]);
 }
@@ -182,7 +184,7 @@ async function omgJSMain(options: any) {
   } else if (options["getSEData"]) {
     const utxo = transaction.decodeUtxoPos(options["getSEData"]);
     const exitData = await childChain.getExitData(utxo);
-    printObject("SE Data", exitData);
+    printObject("", exitData);
     return exitData;
   } else if (options["startSE"]) {
     const exitDataRaw = fs.readFileSync(options["startSE"]);
@@ -226,12 +228,10 @@ async function omgJSMain(options: any) {
     const tx = JSON.parse(txRaw);
     const typedData = transaction.getTypedData(
       tx,
-      config.rootchain_plasma_contract_address
+      config.plasmaframework_contract_address
     );
 
-    const privateKeys = new Array(tx.inputs.length).fill(
-      config.alice_eth_address_private_key
-    );
+    const privateKeys = new Array(tx.inputs.length).fill(txOptions.privateKey);
 
     const signatures = childChain.signTransaction(typedData, privateKeys);
     const signedTxn = childChain.buildSignedTransaction(typedData, signatures);
@@ -248,7 +248,7 @@ async function omgJSMain(options: any) {
       inputUtxosPos: exitData.input_utxos_pos,
       inputTxsInclusionProofs: exitData.input_txs_inclusion_proofs,
       inFlightTxSigs: exitData.in_flight_tx_sigs,
-      txOptions: aliceTxOptions
+      txOptions: txOptions
     });
     printEtherscanLink(receipt.transactionHash);
     return receipt;
@@ -398,6 +398,45 @@ async function omgJSMain(options: any) {
     }
 
     return response;
+  } else if (options["autoChallenge"]) {
+    console.log("---> Watching for Byzantine events <---");
+    let processedEvents: String[] = [];
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const response = await childChain.status();
+
+      for (const event of response["byzantine_events"]) {
+        if (
+          event.details.utxo_pos &&
+          event.event === "invalid_exit" &&
+          !processedEvents.includes(event.details.utxo_pos)
+        ) {
+          console.log("---");
+          console.log(
+            `Found Invalid SE exit for ${event.details.utxo_pos}. Challenge coming up.`
+          );
+          const challengeData = await childChain.getChallengeData(
+            event.details.utxo_pos
+          );
+
+          const receipt = await rootChain.challengeStandardExit({
+            standardExitId: challengeData.exit_id,
+            exitingTx: challengeData.exiting_tx,
+            challengeTx: challengeData.txbytes,
+            inputIndex: challengeData.input_index,
+            challengeTxSig: challengeData.sig,
+            txOptions: txOptions
+          });
+
+          processedEvents.push(event.details.utxo_pos);
+
+          console.log(`Challenge SE successful`);
+          printEtherscanLink(receipt.transactionHash);
+          console.log("---");
+        }
+      }
+      sleep.sleep(60);
+    }
   } else {
     const usage = commandLineUsage(optionDefs["optionDefinitions"]);
     console.log(usage);
