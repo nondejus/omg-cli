@@ -69,8 +69,19 @@ async function omgJSMain(options: any) {
   } else if (options["encode"]) {
     const txRaw = fs.readFileSync(options["encode"]);
     const tx = JSON.parse(txRaw);
-    const encodedTx = transaction.encode(tx);
-    console.log(encodedTx);
+    const typedData = transaction.getTypedData(
+      tx,
+      config.plasmaframework_contract_address
+    );
+
+    const privateKeys = new Array(tx.inputs.length).fill(txOptions.privateKey);
+    const signatures = childChain.signTransaction(typedData, privateKeys);
+
+    const signedTxn = childChain.buildSignedTransaction(typedData, signatures);
+
+    console.log(`Signature: ${signatures}`);
+    console.log(`Encoded Tx without signature: ${transaction.encode(tx)}`);
+    console.log(`Encoded Tx with signature: ${signedTxn}`);
   } else if (options["deposit"]) {
     let amount = options["amount"];
 
