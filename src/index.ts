@@ -358,13 +358,24 @@ async function omgJSMain(options: any) {
     return receipt;
     */
   } else if (options["deleteNonPiggybackedIFE"]) {
-    //
+    const exitId = await rootChain.getInFlightExitId({
+      txBytes: options["deleteNonPiggybackedIFE"]
+    });
+
+    console.log("Exit id: ", exitId);
+    const receipt = await rootChain.deleteNonPiggybackedInFlightExit({
+      exitId,
+      txOptions: txOptions
+    });
+
+    console.log(`IFE successfully deleted`);
+    printEtherscanLink(receipt.transactionHash);
   } else if (options["processExits"]) {
     const receipt = await rootChain.processExits({
       token: options["processExits"],
       exitId: 0,
       maxExitsToProcess: 20,
-      txOptions: aliceTxOptions
+      txOptions: txOptions
     });
 
     console.log(`Exits for queue ${options["processExits"]} processed`);
