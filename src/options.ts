@@ -15,7 +15,7 @@ const optionDefinitions = [
         name: "decode",
         alias: "d",
         type: String,
-        typeLabel: "{underline string}",
+        typeLabel: "{underline tx}",
         description: "Decode an RLP encoded tx"
       },
       {
@@ -28,7 +28,7 @@ const optionDefinitions = [
       {
         name: "getExitPeriod",
         type: Boolean,
-        description: "Get minimum exit period in seconds"
+        description: "Get the minimum exit period in seconds"
       },
       {
         name: "getByzantineEvents",
@@ -38,19 +38,19 @@ const optionDefinitions = [
       {
         name: "processExits",
         type: String,
-        typeLabel: "{underline string}",
+        typeLabel: "{underline address}",
         description: "Process exits for ETH/token"
       },
       {
         name: "addExitQueue",
         type: String,
-        typeLabel: "{underline string}",
+        typeLabel: "{underline address}",
         description: "Add an exist queue for ETH/token"
       },
       {
         name: "getExitQueue",
         type: String,
-        typeLabel: "{underline string}",
+        typeLabel: "{underline address}",
         description: "Get items from the exit queue for ETH/token"
       },
       {
@@ -62,14 +62,12 @@ const optionDefinitions = [
       {
         name: "autoChallenge",
         type: Boolean,
-        description: "Auto challenge byzantine events",
-        typeLabel: " "
+        description: "Auto challenge byzantine events"
       },
       {
         name: "help",
         description: "Print this usage guide.",
         alias: "h",
-        typeLabel: " ",
         defaultOption: true
       }
     ]
@@ -86,7 +84,7 @@ const optionDefinitions = [
       {
         name: "amount",
         type: String,
-        typeLabel: "{underline string}",
+        typeLabel: "{underline number}",
         description: "Specify the amount of ETH/Tokens that should be deposited"
       }
     ]
@@ -105,7 +103,7 @@ const optionDefinitions = [
         name: "getUTXOs",
         alias: "u",
         type: String,
-        typeLabel: "{underline string}",
+        typeLabel: "{underline address}",
         description: "Get all UTXOs for an owner address"
       }
     ]
@@ -162,7 +160,7 @@ const optionDefinitions = [
       {
         name: "getIFEId",
         type: String,
-        typeLabel: "{underline string}",
+        typeLabel: "{underline tx}",
         description: "Get the IN-Flight exit id for an ongoing IN-Flight tx"
       },
       {
@@ -220,8 +218,8 @@ const optionDefinitions = [
       {
         name: "deleteNonPiggybackedIFE",
         type: String,
-        typeLabel: "{underline string}",
-        description: "Todo"
+        typeLabel: "{underline tx}",
+        description: "Delete a none piggy backed IFE"
       }
     ]
   }
