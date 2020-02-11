@@ -8,6 +8,7 @@ const commandLineUsage = require("command-line-usage");
 const fs = require("fs");
 const BigNumber = require("bignumber.js");
 const BN = require("bn.js");
+const JSONbig = require("json-bigint");
 
 const config = require("../config.js");
 const optionDefs = require("./options");
@@ -51,7 +52,8 @@ async function omgJSMain(options: any) {
   } else {
     txOptions = aliceTxOptions;
   }
-  txOptions["gas"] = 6000000;
+  txOptions["gas"] = "6000000";
+  txOptions["gasPrice"] = "1000000000";
 
   if (options["decode"]) {
     const decodedTx = transaction.decodeTxBytes(options["decode"]);
@@ -155,7 +157,7 @@ async function omgJSMain(options: any) {
       }
 
       const approvalReceipt = await rootChain.approveToken({
-        erc20Address: config.erc20_contract,
+        erc20Address: options["deposit"],
         amount: amount,
         txOptions: txOptions
       });
@@ -174,34 +176,19 @@ async function omgJSMain(options: any) {
       printEtherscanLink(depositReceipt.transactionHash);
       return depositReceipt;
     }
-  } else if (options["transaction"]) {
-    const txRaw = fs.readFileSync(options["transaction"]);
+  } else if (options["addFees"]) {
+    const createdTx = await prepareTx(options["addFees"]);
+    printObject("", createdTx.transactions[0]);
+  } else if (options["sendTx"]) {
+    const txRaw = fs.readFileSync(options["sendTx"]);
     const tx = JSON.parse(txRaw);
 
-    /*
-    const payments = [{
-      owner: bobAddress,
-      currency: transaction.ETH_CURRENCY,
-      amount: Number(transferAmount)
-    }]
-    const fee = {
-      currency: transaction.ETH_CURRENCY,
-      amount: Number(feeAmount)
-    }
-
-    const createdTxn = await childChain.createTransaction({
-      owner: txOptions.from,
-      payments,
-      fee,
-      metadata: "hello"
-    });
-    */
     const typedData = transaction.getTypedData(
       tx,
       config.plasmaframework_contract_address
     );
 
-    const privateKeys = new Array(tx.inputs.length).fill(txOptions.privateKey);
+    const privateKeys = new Array(1).fill(txOptions.privateKey);
     const signatures = childChain.signTransaction(typedData, privateKeys);
 
     const signedTxn = childChain.buildSignedTransaction(typedData, signatures);
@@ -498,7 +485,7 @@ async function omgJSMain(options: any) {
 }
 
 function printObject(message: String, o: any) {
-  console.log(`${message}\n ${JSON.stringify(o, undefined, 2)}`);
+  console.log(`${message}\n ${JSONbig.stringify(o, undefined, 2)}`);
 }
 
 function printEtherscanLink(hash: string) {
@@ -509,6 +496,31 @@ function printOMGBlockExplorerLink(hash: string) {
   console.log(
     `TX on OMG Network: ${config.block_explorer_url}transaction/${hash}`
   );
+}
+
+async function prepareTx(file: String) {
+  const txRaw = fs.readFileSync(file);
+  const tx = JSON.parse(txRaw);
+  let payments: any = [];
+
+  for (const output of tx.outputs) {
+    payments.push({
+      owner: output.outputGuard,
+      currency: transaction.ETH_CURRENCY,
+      amount: Number(output.amount)
+    });
+  }
+
+  const fee = {
+    currency: transaction.ETH_CURRENCY
+  };
+
+  return await childChain.createTransaction({
+    owner: txOptions.from,
+    payments,
+    fee,
+    metadata: "1337"
+  });
 }
 
 omgJSMain(options);

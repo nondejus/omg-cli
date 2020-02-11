@@ -93,8 +93,15 @@ const optionDefinitions = [
     header: "Plasma",
     optionList: [
       {
-        name: "transaction",
-        alias: "t",
+        name: "addFees",
+        alias: "f",
+        type: String,
+        typeLabel: "{underline file}",
+        description: "Send a transaction on the plasma chain from json file"
+      },
+      {
+        name: "sendTx",
+        alias: "s",
         type: String,
         typeLabel: "{underline file}",
         description: "Send a transaction on the plasma chain from json file"
