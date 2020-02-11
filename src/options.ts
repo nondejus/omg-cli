@@ -105,6 +105,13 @@ const optionDefinitions = [
         type: String,
         typeLabel: "{underline address}",
         description: "Get all UTXOs for an owner address"
+      },
+      {
+        name: "getBalance",
+        alias: "b",
+        type: String,
+        typeLabel: "{underline address}",
+        description: "Get ETH/token balances for an address"
       }
     ]
   },

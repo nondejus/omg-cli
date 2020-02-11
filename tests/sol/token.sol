@@ -1,15 +1,11 @@
 pragma solidity ^0.4.25;
 
 contract Token {
-    string  public name = "Token";
-    string  public symbol = "TOKEN";
+    string public name = "Anyone Can Mint Tokens";
+    string public symbol = "ANYONEMINTTOKEN";
     uint256 public totalSupply;
 
-    event Transfer(
-        address indexed _from,
-        address indexed _to,
-        uint256 _value
-    );
+    event Transfer(address indexed _from, address indexed _to, uint256 _value);
 
     event Approval(
         address indexed _owner,
@@ -17,15 +13,20 @@ contract Token {
         uint256 _value
     );
 
+    event Mint(address indexed _minter, uint256 _amount);
+
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
 
-    constructor (uint256 _initialSupply) public {
+    constructor(uint256 _initialSupply) public {
         balanceOf[msg.sender] = _initialSupply;
         totalSupply = _initialSupply;
     }
 
-    function transfer(address _to, uint256 _value) public returns (bool success) {
+    function transfer(address _to, uint256 _value)
+        public
+        returns (bool success)
+    {
         require(balanceOf[msg.sender] >= _value);
 
         balanceOf[msg.sender] -= _value;
@@ -36,7 +37,10 @@ contract Token {
         return true;
     }
 
-    function approve(address _spender, uint256 _value) public returns (bool success) {
+    function approve(address _spender, uint256 _value)
+        public
+        returns (bool success)
+    {
         allowance[msg.sender][_spender] = _value;
 
         emit Approval(msg.sender, _spender, _value);
@@ -44,7 +48,10 @@ contract Token {
         return true;
     }
 
-    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
+    function transferFrom(address _from, address _to, uint256 _value)
+        public
+        returns (bool success)
+    {
         require(_value <= balanceOf[_from]);
         require(_value <= allowance[_from][msg.sender]);
 
@@ -56,5 +63,10 @@ contract Token {
         emit Transfer(_from, _to, _value);
 
         return true;
+    }
+
+    function mint(address _minter, uint256 _amount) public returns (bool) {
+        totalSupply += _amount;
+        balanceOf[_minter] += _amount;
     }
 }

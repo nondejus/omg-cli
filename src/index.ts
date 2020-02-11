@@ -177,6 +177,25 @@ async function omgJSMain(options: any) {
   } else if (options["transaction"]) {
     const txRaw = fs.readFileSync(options["transaction"]);
     const tx = JSON.parse(txRaw);
+
+    /*
+    const payments = [{
+      owner: bobAddress,
+      currency: transaction.ETH_CURRENCY,
+      amount: Number(transferAmount)
+    }]
+    const fee = {
+      currency: transaction.ETH_CURRENCY,
+      amount: Number(feeAmount)
+    }
+
+    const createdTxn = await childChain.createTransaction({
+      owner: txOptions.from,
+      payments,
+      fee,
+      metadata: "hello"
+    });
+    */
     const typedData = transaction.getTypedData(
       tx,
       config.plasmaframework_contract_address
@@ -197,6 +216,10 @@ async function omgJSMain(options: any) {
     const exitData = await childChain.getExitData(utxo);
     printObject("", exitData);
     return exitData;
+  } else if (options["getBalance"]) {
+    const balance = await childChain.getBalance(options["getBalance"]);
+    printObject("", balance);
+    return balance;
   } else if (options["startSE"]) {
     const exitDataRaw = fs.readFileSync(options["startSE"]);
     const exitData = JSON.parse(exitDataRaw);
@@ -286,11 +309,15 @@ async function omgJSMain(options: any) {
     console.log("Exit id: ", exitId);
     return exitId;
   } else if (options["challengeIFEInputSpent"]) {
-    /*
-    const challengeData = await childChain.inFlightExitGetInputChallengeData(options["challengeIFEInputSpent"], 0)
+    const challengeData = await childChain.inFlightExitGetInputChallengeData(
+      options["challengeIFEInputSpent"],
+      options["inputIndex"]
+    );
 
+    printObject("", challengeData);
+    /*
     const receipt = await rootChain.challengeInFlightExitInputSpent({
-      inFlightTx: inflightExit.txbytes,
+      inFlightTx: challengeData.txbytes,
       inFlightTxInputIndex: 0,
       challengingTx: unsignCarolTx,
       challengingTxInputIndex: 0,
@@ -301,7 +328,11 @@ async function omgJSMain(options: any) {
         privateKey: carolAccount.privateKey,
         from: carolAccount.address
       }
-    });*/
+    });
+
+    printEtherscanLink(receipt.transactionHash);
+    return receipt;
+    */
   } else if (options["challengeIFEOutputSpent"]) {
     /*
     const challengeData = await childChain.inFlightExitGetOutputChallengeData(
