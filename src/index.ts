@@ -19,9 +19,6 @@ const options = commandLineArgs(optionsLists);
 const omgcli = new OMGCLI(config);
 
 async function main() {
-  if (await omgcli.run(options)) {
-    const usage = commandLineUsage(optionDefs["optionDefinitions"]);
-    console.log(usage);
-  }
+  await omgcli.run(options);
 }
 main();

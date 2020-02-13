@@ -10,7 +10,8 @@ export class Util {
   }
 
   static printEtherscanLink(hash: string, config: any) {
-    console.log(`TX on Etherscan: https://ropsten.etherscan.io/tx/${hash}`);
+    const network = config.eth_node.match("https://(.*).infura.io/.*;");
+    console.log(`TX on Etherscan: https://${network}.etherscan.io/tx/${hash}`);
   }
 
   static printOMGBlockExplorerLink(hash: string, config: any) {

@@ -6,7 +6,9 @@ const txUtils = require("@omisego/omg-js-rootchain/src/txUtils");
 
 import { Util } from "./util";
 import { Load } from "./load";
+const optionDefs = require("./options");
 
+const commandLineUsage = require("command-line-usage");
 const fs = require("fs");
 const BigNumber = require("bn.js");
 const JSONbig = require("json-bigint");
@@ -498,7 +500,8 @@ export class OMGCLI {
       const load = new Load(options["parallelRuns"], options["iterations"]);
       load.run();
     } else {
-      return true;
+      const usage = commandLineUsage(optionDefs["optionDefinitions"]);
+      console.log(usage);
     }
   }
 
