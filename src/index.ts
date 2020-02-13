@@ -1,20 +1,18 @@
 const { transaction } = require("@omisego/omg-js-util/src");
 const ChildChain = require("@omisego/omg-js-childchain/src/childchain");
+const rpcAPI = require("@omisego/omg-js-childchain/src/rpc/rpcApi");
 const RootChain = require("@omisego/omg-js-rootchain/src/rootchain");
 const txUtils = require("@omisego/omg-js-rootchain/src/txUtils");
+const optionDefs = require("./options");
+const config = require("../config.js");
 
 const commandLineArgs = require("command-line-args");
 const commandLineUsage = require("command-line-usage");
 const fs = require("fs");
-const BigNumber = require("bignumber.js");
-const BN = require("bn.js");
+const BigNumber = require("bn.js");
 const JSONbig = require("json-bigint");
 
-const config = require("../config.js");
-const optionDefs = require("./options");
-
 const sleep = require("sleep");
-
 const Web3 = require("web3");
 const web3 = new Web3(new Web3.providers.HttpProvider(config.eth_node));
 
@@ -68,6 +66,8 @@ async function omgJSMain(options: any) {
 
     console.log(minExitPeriod);
     return Number(minExitPeriod);
+  } else if (options["getFees"]) {
+    printObject("", await getFees());
   } else if (options["encode"]) {
     const txRaw = fs.readFileSync(options["encode"]);
     const tx = JSON.parse(txRaw);
@@ -131,7 +131,7 @@ async function omgJSMain(options: any) {
       options["deposit"] == "0x0000000000000000000000000000000000000000"
     ) {
       if (!options["amount"]) {
-        amount = new BN(
+        amount = new BigNumber(
           web3.utils.toWei(config.alice_eth_deposit_amount, "ether")
         );
       }
@@ -158,16 +158,16 @@ async function omgJSMain(options: any) {
 
       const approvalReceipt = await rootChain.approveToken({
         erc20Address: options["deposit"],
-        amount: amount,
+        amount: new BigNumber(amount),
         txOptions: txOptions
       });
       console.log("ERC20 approved: ", approvalReceipt.transactionHash);
 
       console.log(
-        `Depositing ${config.alice_erc20_deposit_amount} ERC20 from the rootchain to the childchain`
+        `Depositing ${amount} ERC20 ${options["deposit"]} from the rootchain to the childchain`
       );
       const depositReceipt = await rootChain.deposit({
-        amount: amount,
+        amount: new BigNumber(amount),
         currency: options["deposit"],
         txOptions: txOptions
       });
@@ -176,12 +176,18 @@ async function omgJSMain(options: any) {
       printEtherscanLink(depositReceipt.transactionHash);
       return depositReceipt;
     }
-  } else if (options["addFees"]) {
-    const createdTx = await prepareTx(options["addFees"]);
+  } else if (options["addFeesToTx"]) {
+    const createdTx = await prepareTx(options["addFeesToTx"]);
     printObject("", createdTx.transactions[0]);
+    return createdTx.transactions[0];
   } else if (options["sendTx"]) {
-    const txRaw = fs.readFileSync(options["sendTx"]);
-    const tx = JSON.parse(txRaw);
+    let tx;
+    if (fs.existsSync(options["sendTx"])) {
+      const txRaw = fs.readFileSync(options["sendTx"]);
+      tx = JSONbig.parse(txRaw);
+    } else {
+      tx = options["sendTx"];
+    }
 
     const typedData = transaction.getTypedData(
       tx,
@@ -209,7 +215,7 @@ async function omgJSMain(options: any) {
     return balance;
   } else if (options["startSE"]) {
     const exitDataRaw = fs.readFileSync(options["startSE"]);
-    const exitData = JSON.parse(exitDataRaw);
+    const exitData = JSONbig.parse(exitDataRaw);
 
     const receipt = await rootChain.startStandardExit({
       utxoPos: exitData.utxo_pos,
@@ -224,14 +230,13 @@ async function omgJSMain(options: any) {
     const utxoPos = parseInt(options["getSEChallengeData"]);
     let challengeData = await childChain.getChallengeData(utxoPos);
 
-    const number = new BigNumber(challengeData.exit_id);
-    challengeData.exit_id = number.toFixed();
-    console.log(JSON.stringify(challengeData, null, 2));
+    printObject("", challengeData);
+    return challengeData;
   } else if (options["challengeSE"]) {
     const challengeDataRaw = fs.readFileSync(options["challengeSE"]);
-    const challengeData = JSON.parse(challengeDataRaw);
+    const challengeData = JSONbig.parse(challengeDataRaw);
 
-    challengeData.exit_id = new BN(challengeData.exit_id);
+    challengeData.exit_id = new BigNumber(challengeData.exit_id);
 
     const receipt = await rootChain.challengeStandardExit({
       standardExitId: challengeData.exit_id,
@@ -246,7 +251,8 @@ async function omgJSMain(options: any) {
     return receipt;
   } else if (options["getIFEData"]) {
     const txRaw = fs.readFileSync(options["getIFEData"]);
-    const tx = JSON.parse(txRaw);
+    const tx = JSONbig.parse(txRaw);
+
     const typedData = transaction.getTypedData(
       tx,
       config.plasmaframework_contract_address
@@ -261,7 +267,7 @@ async function omgJSMain(options: any) {
     printObject("", IFEData);
   } else if (options["startIFE"]) {
     const txRaw = fs.readFileSync(options["startIFE"]);
-    const exitData = JSON.parse(txRaw);
+    const exitData = JSONbig.parse(txRaw);
 
     const receipt = await rootChain.startInFlightExit({
       inFlightTx: exitData.in_flight_tx,
@@ -311,20 +317,15 @@ async function omgJSMain(options: any) {
       challengingTxWitness: carolTxDecoded.sigs[0],
       inputTx: unsignInput,
       inputUtxoPos: utxoPosOutput,
-      txOptions: {
-        privateKey: carolAccount.privateKey,
-        from: carolAccount.address
-      }
+      txOptions: txOptions
     });
 
     printEtherscanLink(receipt.transactionHash);
-    return receipt;
-    */
+    return receipt;*/
   } else if (options["challengeIFEOutputSpent"]) {
-    /*
     const challengeData = await childChain.inFlightExitGetOutputChallengeData(
       options["challengeIFEOutputSpent"],
-      0
+      options["inputIndex"]
     );
 
     const receipt = await rootChain.challengeInFlightExitOutputSpent({
@@ -334,12 +335,11 @@ async function omgJSMain(options: any) {
       challengingTx: challengeData.spending_txbytes,
       challengingTxInputIndex: challengeData.spending_input_index,
       challengingTxWitness: challengeData.spending_sig,
-      txOptions: aliceTxOptions
+      txOptions: txOptions
     });
     printEtherscanLink(receipt.transactionHash);
-    return receipt;*/
+    return receipt;
   } else if (options["challengeIFENotCanonical"]) {
-    /*
     const competitor = await childChain.inFlightExitGetCompetitor(
       options["challengeIFENotCanonical"]
     );
@@ -358,14 +358,11 @@ async function omgJSMain(options: any) {
     });
     printEtherscanLink(receipt.transactionHash);
     return receipt;
-    */
   } else if (options["respondToNonCanonicalChallenge"]) {
-    /*
     const proof = await childChain.inFlightExitProveCanonical(
       options["challengeIFENotCanonical"]
     );
 
-    // Bob responds to the challenge
     const receipt = await rootChain.respondToNonCanonicalChallenge({
       inFlightTx: proof.in_flight_txbytes,
       inFlightTxPos: proof.in_flight_tx_pos,
@@ -374,7 +371,6 @@ async function omgJSMain(options: any) {
     });
     printEtherscanLink(receipt.transactionHash);
     return receipt;
-    */
   } else if (options["deleteNonPiggybackedIFE"]) {
     const exitId = await rootChain.getInFlightExitId({
       txBytes: options["deleteNonPiggybackedIFE"]
@@ -498,7 +494,12 @@ function printOMGBlockExplorerLink(hash: string) {
   );
 }
 
-async function prepareTx(file: String) {
+async function prepareTx(file: String, customTxOptions?: any) {
+  if (customTxOptions) {
+    const txOptionsRaw = fs.readFileSync(customTxOptions);
+    txOptions = JSON.parse(txOptionsRaw);
+  }
+
   const txRaw = fs.readFileSync(file);
   const tx = JSON.parse(txRaw);
   let payments: any = [];
@@ -507,7 +508,7 @@ async function prepareTx(file: String) {
     payments.push({
       owner: output.outputGuard,
       currency: transaction.ETH_CURRENCY,
-      amount: Number(output.amount)
+      amount: output.amount
     });
   }
 
@@ -523,6 +524,24 @@ async function prepareTx(file: String) {
   });
 }
 
+async function getFees() {
+  return await rpcAPI.post({
+    url: `${config.watcher_url}/fees.all`,
+    body: "",
+    proxyUrl: ""
+  });
+}
+
+async function getFee(currency: any) {
+  const fees = await getFees();
+  for (const fee of fees["1"]) {
+    if (fee.currency === currency) {
+      return fee.amount;
+    }
+  }
+  throw `Error: No fees discovered for ${currency}`;
+}
+
 omgJSMain(options);
 
-module.exports = { omgJSMain, config, web3 };
+module.exports = { omgJSMain, config, childChain, getFee };

@@ -15,6 +15,8 @@ const config = {
   alice_eth_address_private_key: process.env.ALICE_ETH_ADDRESS_PRIVATE_KEY,
   bob_eth_address: process.env.BOB_ETH_ADDRESS,
   bob_eth_address_private_key: process.env.BOB_ETH_ADDRESS_PRIVATE_KEY,
+  charlie_eth_address: process.env.CHARLIE_ETH_ADDRESS,
+  charlie_eth_address_private_key: process.env.CHARLIE_ETH_ADDRESS_PRIVATE_KEY,
   alice_eth_deposit_amount: process.env.ALICE_ETH_DEPOSIT_AMOUNT || "0.01",
   alice_erc20_deposit_amount: process.env.ALICE_ERC20_DEPOSIT_AMOUNT || "20",
   alice_eth_transfer_amount: process.env.ALICE_ETH_TRANSFER_AMOUNT || "0.005",

@@ -31,6 +31,11 @@ const optionDefinitions = [
         description: "Get the minimum exit period in seconds"
       },
       {
+        name: "getFees",
+        type: Boolean,
+        description: "Get fee information "
+      },
+      {
         name: "getByzantineEvents",
         type: Boolean,
         description: "Get a list of Byzantine events"
@@ -65,6 +70,11 @@ const optionDefinitions = [
         description: "Auto challenge byzantine events"
       },
       {
+        name: "load",
+        type: Boolean,
+        description: "Generate load on the network"
+      },
+      {
         name: "help",
         description: "Print this usage guide.",
         alias: "h",
@@ -93,7 +103,7 @@ const optionDefinitions = [
     header: "Plasma",
     optionList: [
       {
-        name: "addFees",
+        name: "addFeesToTx",
         alias: "f",
         type: String,
         typeLabel: "{underline file}",

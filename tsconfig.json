@@ -3,8 +3,9 @@
     "outDir": "./dist",
     "module": "commonjs",
     "allowJs": true,
-    "target": "es5",
-    "strict": true
+    "target": "es6",
+    "strict": true,
+    "types": ["node"]
   },
   "include": ["./src/**/*"]
 }
