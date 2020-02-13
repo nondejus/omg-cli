@@ -70,11 +70,6 @@ const optionDefinitions = [
         description: "Auto challenge byzantine events"
       },
       {
-        name: "load",
-        type: Boolean,
-        description: "Generate load on the network"
-      },
-      {
         name: "help",
         description: "Print this usage guide.",
         alias: "h",
@@ -244,6 +239,21 @@ const optionDefinitions = [
         type: String,
         typeLabel: "{underline tx}",
         description: "Delete a none piggy backed IFE"
+      }
+    ]
+  },
+  {
+    header: "Load Test",
+    optionList: [
+      {
+        name: "parallelRuns",
+        type: Number,
+        description: "The number of parallel workers to submit tx"
+      },
+      {
+        name: "iterations",
+        type: Number,
+        description: "The number times that all UTXOs should be spent"
       }
     ]
   }
