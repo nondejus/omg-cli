@@ -1,6 +1,5 @@
 require("source-map-support").install();
 const commandLineArgs = require("command-line-args");
-const commandLineUsage = require("command-line-usage");
 const optionDefs = require("./options");
 const config = require("../config.js");
 
