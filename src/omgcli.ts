@@ -327,24 +327,24 @@ export class OMGCLI {
     } else if (options["challengeIFEInputSpent"]) {
       const challengeData = await this.childChain.inFlightExitGetInputChallengeData(
         options["challengeIFEInputSpent"],
-        options["inputIndex"]
+        Number(options["inputIndex"])
       );
 
       Util.printObject(challengeData);
-      /*
+
       const receipt = await this.rootChain.challengeInFlightExitInputSpent({
-        inFlightTx: challengeData.txbytes,
-        inFlightTxInputIndex: 0,
-        challengingTx: unsignCarolTx,
-        challengingTxInputIndex: 0,
-        challengingTxWitness: carolTxDecoded.sigs[0],
-        inputTx: unsignInput,
-        inputUtxoPos: utxoPosOutput,
-        txOptions: txOptions
+        inFlightTx: challengeData.in_flight_txbytes,
+        inFlightTxInputIndex: challengeData.in_flight_input_index,
+        challengingTx: challengeData.spending_txbytes,
+        challengingTxInputIndex: challengeData.spending_input_index,
+        challengingTxWitness: challengeData.spending_sig,
+        inputTx: challengeData.input_tx,
+        inputUtxoPos: challengeData.input_utxo_pos,
+        txOptions: this.txOptions
       });
-  
-      printEtherscanLink(receipt.transactionHash);
-      return receipt;*/
+
+      Util.printEtherscanLink(receipt.transactionHash, this.config);
+      return receipt;
     } else if (options["challengeIFEOutputSpent"]) {
       const challengeData = await this.childChain.inFlightExitGetOutputChallengeData(
         options["challengeIFEOutputSpent"],
@@ -512,7 +512,7 @@ export class OMGCLI {
     }
 
     const txRaw = fs.readFileSync(file);
-    const tx = JSON.parse(txRaw);
+    const tx = JSONbig.parse(txRaw);
     let payments: any = [];
 
     for (const output of tx.outputs) {
