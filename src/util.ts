@@ -10,8 +10,15 @@ export class Util {
   }
 
   static printEtherscanLink(hash: string, config: any) {
-    const network = config.eth_node.match("https://(.*).infura.io/.*;");
-    console.log(`TX on Etherscan: https://${network}.etherscan.io/tx/${hash}`);
+    const regex = /https:\/\/(.*).infura.io\/.*/;
+    const network = config.eth_node.match(regex)[1];
+    if (network !== "mainnet")
+      console.log(
+        `TX on Etherscan: https://${network}.etherscan.io/tx/${hash}`
+      );
+    else {
+      console.log(`TX on Etherscan: https://etherscan.io/tx/${hash}`);
+    }
   }
 
   static printOMGBlockExplorerLink(hash: string, config: any) {

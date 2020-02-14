@@ -213,10 +213,10 @@ export class OMGCLI {
         typedData,
         signatures
       );
-      Util.printObject("Signed Tx", signedTxn);
+      Util.printObject(signedTxn, "Signed Tx");
 
       let receipt = await this.childChain.submitTransaction(signedTxn);
-      Util.printObject("Tx receipt", receipt);
+      Util.printObject(receipt, "Tx receipt");
       Util.printOMGBlockExplorerLink(receipt.txhash, this.config);
       return receipt;
     } else if (options["getSEData"]) {
@@ -441,7 +441,7 @@ export class OMGCLI {
       const response = await this.childChain.status();
 
       if (response["byzantine_events"].length) {
-        Util.printObject("Byzantine events", response["byzantine_events"]);
+        Util.printObject(response["byzantine_events"], "Byzantine events");
       } else {
         console.log("No Byzantine events");
       }

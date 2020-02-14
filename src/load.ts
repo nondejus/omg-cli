@@ -89,9 +89,9 @@ export class Load {
                   setTxOptions: "tx/txOptions-charlie.json"
                 };
 
-                const txReceipt = await this.omgcli.run(cliOptionSendTx);
+                await this.omgcli.run(cliOptionSendTx);
 
-                console.log(txReceipt);
+                //console.log(txReceipt);
               }
             }
           }
