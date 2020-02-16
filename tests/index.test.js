@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 const fs = require("fs");
-const { omgJSMain, config, web3 } = require("../src/index");
+const { omgJSMain, config, web3 } = require("../src/omgcli");
 const { transaction } = require("@omisego/omg-js-util/src");
 const awaitTransactionMined = require("await-transaction-mined");
 

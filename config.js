@@ -11,6 +11,7 @@ const config = {
     ? process.env.ERC20_CONTRACT
     : undefined,
   block_explorer_url: process.env.BLOCKEXPLORER_URL,
+  tenderly_project_url: process.env.TENDERLY_PROJECT_URL,
   alice_eth_address: process.env.ALICE_ETH_ADDRESS,
   alice_eth_address_private_key: process.env.ALICE_ETH_ADDRESS_PRIVATE_KEY,
   bob_eth_address: process.env.BOB_ETH_ADDRESS,

@@ -16,8 +16,24 @@ export class Util {
       console.log(
         `TX on Etherscan: https://${network}.etherscan.io/tx/${hash}`
       );
-    else {
+    else if (network) {
       console.log(`TX on Etherscan: https://etherscan.io/tx/${hash}`);
+    }
+  }
+
+  static printExplorerLinks(txReceipt: any, config: any) {
+    this.printEtherscanLink(txReceipt.transactionHash, config);
+    this.printTenderlyLink(txReceipt.transactionHash, config);
+  }
+
+  static printTenderlyLink(hash: string, config: any) {
+    const regex = /https:\/\/(.*).infura.io\/.*/;
+    const network = config.eth_node.match(regex)[1];
+
+    if (network && config.tenderly_project_url) {
+      console.log(
+        `TX on Tenderly: ${config.tenderly_project_url}/tx/${network}/${hash}`
+      );
     }
   }
 

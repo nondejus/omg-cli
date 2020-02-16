@@ -6,9 +6,7 @@ const txUtils = require("@omisego/omg-js-rootchain/src/txUtils");
 
 import { Util } from "./util";
 import { Load } from "./load";
-const optionDefs = require("./options");
 
-const commandLineUsage = require("command-line-usage");
 const fs = require("fs");
 const BigNumber = require("bn.js");
 const JSONbig = require("json-bigint");
@@ -36,66 +34,140 @@ export class OMGCLI {
       plasmaContractAddress: config.plasmaframework_contract_address
     });
     this.web3 = web3;
+
+    this.txOptions = {
+      privateKey: config.alice_eth_address_private_key,
+      from: config.alice_eth_address,
+      gas: 6000000,
+      gasPrice: "1000000000"
+    };
   }
 
-  async run(options: any) {
-    if (options["setTxOptions"]) {
-      const txOptionsRaw = fs.readFileSync(options["setTxOptions"]);
-      this.txOptions = JSON.parse(txOptionsRaw);
-    } else {
-      const aliceTxOptions = {
-        privateKey: this.config.alice_eth_address_private_key,
-        from: this.config.alice_eth_address
-      };
-      this.txOptions = aliceTxOptions;
+  decode(encodedTx: String) {
+    return transaction.decodeTxBytes(encodedTx);
+  }
+
+  encode(pathToJSONFile: String) {
+    const txRaw = fs.readFileSync(pathToJSONFile);
+    const tx = JSON.parse(txRaw);
+    const typedData = transaction.getTypedData(
+      tx,
+      this.config.plasmaframework_contract_address
+    );
+
+    const privateKeys = new Array(tx.inputs.length).fill(
+      this.txOptions.privateKey
+    );
+    const signatures = this.childChain.signTransaction(typedData, privateKeys);
+
+    const signedTx = this.childChain.buildSignedTransaction(
+      typedData,
+      signatures
+    );
+
+    return {
+      tx: transaction.encode(tx),
+      signedTx: signedTx
+    };
+  }
+
+  async getUTXOs(address: String) {
+    return await this.childChain.getUtxos(address);
+  }
+
+  async getExitPeriod() {
+    return await this.rootChain.plasmaContract.methods.minExitPeriod().call();
+  }
+
+  async getBalance(address: String) {
+    return await this.childChain.getBalance(address);
+  }
+
+  async getSEData(utxoPos: Number) {
+    const utxo = transaction.decodeUtxoPos(utxoPos);
+    const exitData = await this.childChain.getExitData(utxo);
+    return exitData;
+  }
+
+  async startSE(exitData: any) {
+    return await this.rootChain.startStandardExit({
+      utxoPos: exitData.utxo_pos,
+      outputTx: exitData.txbytes,
+      inclusionProof: exitData.proof,
+      txOptions: this.txOptions
+    });
+  }
+
+  async getSEChallengeData(utxoPos: Number) {
+    return await this.childChain.getChallengeData(utxoPos);
+  }
+
+  async challengeSE(challengeData: any) {
+    return await this.rootChain.challengeStandardExit({
+      standardExitId: challengeData.exit_id,
+      exitingTx: challengeData.exiting_tx,
+      challengeTx: challengeData.txbytes,
+      inputIndex: challengeData.input_index,
+      challengeTxSig: challengeData.sig,
+      txOptions: this.txOptions
+    });
+  }
+
+  async startIFE(exitData: any) {
+    return await this.rootChain.startInFlightExit({
+      inFlightTx: exitData.in_flight_tx,
+      inputTxs: exitData.input_txs,
+      inputUtxosPos: exitData.input_utxos_pos,
+      inputTxsInclusionProofs: exitData.input_txs_inclusion_proofs,
+      inFlightTxSigs: exitData.in_flight_tx_sigs,
+      txOptions: this.txOptions
+    });
+  }
+
+  async getIFEData(tx: any) {
+    const typedData = transaction.getTypedData(
+      tx,
+      this.config.plasmaframework_contract_address
+    );
+
+    const privateKeys = new Array(tx.inputs.length).fill(
+      this.txOptions.privateKey
+    );
+
+    const signatures = this.childChain.signTransaction(typedData, privateKeys);
+    const signedTxn = this.childChain.buildSignedTransaction(
+      typedData,
+      signatures
+    );
+
+    return await this.childChain.inFlightExitGetData(signedTxn);
+  }
+
+  async getFees() {
+    return await rpcAPI.post({
+      url: `${this.config.watcher_url}/fees.all`,
+      body: "",
+      proxyUrl: ""
+    });
+  }
+
+  async getFee(currency: any) {
+    const fees = await this.getFees();
+    for (const fee of fees["1"]) {
+      if (fee.currency === currency) {
+        return fee.amount;
+      }
     }
-    this.txOptions["gas"] = "6000000";
-    this.txOptions["gasPrice"] = "1000000000";
+    throw `Error: No fees discovered for ${currency}`;
+  }
 
-    if (options["decode"]) {
-      const decodedTx = transaction.decodeTxBytes(options["decode"]);
-      Util.printObject(decodedTx, "RLP decoded tx");
-    } else if (options["getUTXOs"]) {
-      const utxos = await this.childChain.getUtxos(options["getUTXOs"]);
-      Util.printObject(utxos);
-    } else if (options["getExitPeriod"]) {
-      const minExitPeriod = await this.rootChain.plasmaContract.methods
-        .minExitPeriod()
-        .call();
+  async deposit(asset: String, amount?: Number) {
+    let approvalReceipt;
+    let depositReceipt;
 
-      console.log(minExitPeriod);
-      return Number(minExitPeriod);
-    } else if (options["getFees"]) {
-      Util.printObject(await this.getFees());
-    } else if (options["encode"]) {
-      const txRaw = fs.readFileSync(options["encode"]);
-      const tx = JSON.parse(txRaw);
-      const typedData = transaction.getTypedData(
-        tx,
-        this.config.plasmaframework_contract_address
-      );
-
-      const privateKeys = new Array(tx.inputs.length).fill(
-        this.txOptions.privateKey
-      );
-      const signatures = this.childChain.signTransaction(
-        typedData,
-        privateKeys
-      );
-
-      const signedTxn = this.childChain.buildSignedTransaction(
-        typedData,
-        signatures
-      );
-
-      console.log(`Signature: ${signatures}`);
-      console.log(`Encoded Tx without signature: ${transaction.encode(tx)}`);
-      console.log(`Encoded Tx with signature: ${signedTxn}`);
-    } else if (options["deposit"]) {
-      let amount = options["amount"];
-
-      if (fs.existsSync(options["deposit"])) {
-        const txRaw = fs.readFileSync(options["deposit"]);
+    if (asset) {
+      if (fs.existsSync(asset)) {
+        const txRaw = fs.readFileSync(asset);
         const tx = JSON.parse(txRaw);
         const encodedTx = transaction.encode(tx);
 
@@ -105,13 +177,11 @@ export class OMGCLI {
           : await this.rootChain.getErc20Vault();
 
         if (!isEth) {
-          const approvalReceipt = await this.rootChain.approveToken({
+          approvalReceipt = await this.rootChain.approveToken({
             erc20Address: this.config.erc20_contract,
             amount: this.config.alice_erc20_deposit_amount,
             txOptions: this.txOptions
           });
-          console.log("ERC20 approval successful");
-          Util.printEtherscanLink(approvalReceipt.transactionHash, this.config);
         }
 
         const txDetails = {
@@ -121,71 +191,48 @@ export class OMGCLI {
           data: txUtils.getTxData(this.web3, contract, "deposit", encodedTx),
           gas: this.txOptions.gas
         };
-        const depositReceipt = await txUtils.sendTx({
+        depositReceipt = await txUtils.sendTx({
           web3: this.web3,
           txDetails,
           privateKey: this.txOptions.privateKey
         });
-        if (isEth) {
-          console.log(`ETH deposit from raw tx successful`);
-        } else {
-          console.log(`Token deposit from raw tx successful`);
-        }
-
-        Util.printEtherscanLink(depositReceipt.transactionHash, this.config);
-        return depositReceipt;
-      } else if (
-        options["deposit"] == "0x0000000000000000000000000000000000000000"
-      ) {
-        if (!options["amount"]) {
+      } else if (asset == transaction.ETH_CURRENCY) {
+        if (!amount) {
           amount = new BigNumber(
             this.web3.utils.toWei(this.config.alice_eth_deposit_amount, "ether")
           );
         }
-
-        console.log(
-          `Depositing ${this.web3.utils.fromWei(
-            amount.toString(),
-            "ether"
-          )} ETH from ${
-            this.txOptions.from
-          } from the rootchain to the childchain`
-        );
-        const depositReceipt = await this.rootChain.deposit({
+        depositReceipt = await this.rootChain.deposit({
           amount: amount,
-          currency: options["deposit"],
+          currency: asset,
           txOptions: this.txOptions
         });
-        console.log("ETH deposit successful");
-        Util.printEtherscanLink(depositReceipt.transactionHash, this.config);
-        console.log("Funds can be spent after cool down of 10 ETH blocks");
-        return depositReceipt;
       } else {
-        if (!options["amount"]) {
+        if (!amount) {
           amount = this.config.alice_erc20_deposit_amount;
         }
 
-        const approvalReceipt = await this.rootChain.approveToken({
-          erc20Address: options["deposit"],
+        approvalReceipt = await this.rootChain.approveToken({
+          erc20Address: asset,
           amount: new BigNumber(amount),
           txOptions: this.txOptions
         });
-        console.log("ERC20 approved: ", approvalReceipt.transactionHash);
 
-        console.log(
-          `Depositing ${amount} ERC20 ${options["deposit"]} from the rootchain to the childchain`
-        );
-        const depositReceipt = await this.rootChain.deposit({
+        depositReceipt = await this.rootChain.deposit({
           amount: new BigNumber(amount),
-          currency: options["deposit"],
+          currency: asset,
           txOptions: this.txOptions
         });
-
-        console.log("Token deposit successful");
-        Util.printEtherscanLink(depositReceipt.transactionHash, this.config);
-        return depositReceipt;
       }
-    } else if (options["addFeesToTx"]) {
+    }
+    return {
+      approvalReceipt: approvalReceipt,
+      depositReceipt: depositReceipt
+    };
+  }
+
+  async run(options: any) {
+    if (options["addFeesToTx"]) {
       const createdTx = await this.prepareTx(options["addFeesToTx"]);
       Util.printObject(createdTx.transactions[0]);
       return createdTx.transactions[0];
@@ -218,89 +265,6 @@ export class OMGCLI {
       let receipt = await this.childChain.submitTransaction(signedTxn);
       Util.printObject(receipt, "Tx receipt");
       Util.printOMGBlockExplorerLink(receipt.txhash, this.config);
-      return receipt;
-    } else if (options["getSEData"]) {
-      const utxo = transaction.decodeUtxoPos(options["getSEData"]);
-      const exitData = await this.childChain.getExitData(utxo);
-      Util.printObject(exitData);
-      return exitData;
-    } else if (options["getBalance"]) {
-      const balance = await this.childChain.getBalance(options["getBalance"]);
-      Util.printObject(balance);
-      return balance;
-    } else if (options["startSE"]) {
-      const exitDataRaw = fs.readFileSync(options["startSE"]);
-      const exitData = JSONbig.parse(exitDataRaw);
-
-      const receipt = await this.rootChain.startStandardExit({
-        utxoPos: exitData.utxo_pos,
-        outputTx: exitData.txbytes,
-        inclusionProof: exitData.proof,
-        txOptions: this.txOptions
-      });
-
-      Util.printEtherscanLink(receipt.transactionHash, this.config);
-      return receipt;
-    } else if (options["getSEChallengeData"]) {
-      const utxoPos = parseInt(options["getSEChallengeData"]);
-      let challengeData = await this.childChain.getChallengeData(utxoPos);
-
-      Util.printObject(challengeData);
-      return challengeData;
-    } else if (options["challengeSE"]) {
-      const challengeDataRaw = fs.readFileSync(options["challengeSE"]);
-      const challengeData = JSONbig.parse(challengeDataRaw);
-
-      challengeData.exit_id = new BigNumber(challengeData.exit_id);
-
-      const receipt = await this.rootChain.challengeStandardExit({
-        standardExitId: challengeData.exit_id,
-        exitingTx: challengeData.exiting_tx,
-        challengeTx: challengeData.txbytes,
-        inputIndex: challengeData.input_index,
-        challengeTxSig: challengeData.sig,
-        txOptions: this.txOptions
-      });
-
-      Util.printEtherscanLink(receipt.transactionHash, this.config);
-      return receipt;
-    } else if (options["getIFEData"]) {
-      const txRaw = fs.readFileSync(options["getIFEData"]);
-      const tx = JSONbig.parse(txRaw);
-
-      const typedData = transaction.getTypedData(
-        tx,
-        this.config.plasmaframework_contract_address
-      );
-
-      const privateKeys = new Array(tx.inputs.length).fill(
-        this.txOptions.privateKey
-      );
-
-      const signatures = this.childChain.signTransaction(
-        typedData,
-        privateKeys
-      );
-      const signedTxn = this.childChain.buildSignedTransaction(
-        typedData,
-        signatures
-      );
-
-      const IFEData = await this.childChain.inFlightExitGetData(signedTxn);
-      Util.printObject(IFEData);
-    } else if (options["startIFE"]) {
-      const txRaw = fs.readFileSync(options["startIFE"]);
-      const exitData = JSONbig.parse(txRaw);
-
-      const receipt = await this.rootChain.startInFlightExit({
-        inFlightTx: exitData.in_flight_tx,
-        inputTxs: exitData.input_txs,
-        inputUtxosPos: exitData.input_utxos_pos,
-        inputTxsInclusionProofs: exitData.input_txs_inclusion_proofs,
-        inFlightTxSigs: exitData.in_flight_tx_sigs,
-        txOptions: this.txOptions
-      });
-      Util.printEtherscanLink(receipt.transactionHash, this.config);
       return receipt;
     } else if (options["piggybackIFEOnOutput"]) {
       const receipt = await this.rootChain.piggybackInFlightExitOnOutput({
@@ -499,9 +463,6 @@ export class OMGCLI {
     } else if (options["parallelRuns"] && options["iterations"]) {
       const load = new Load(options["parallelRuns"], options["iterations"]);
       load.run();
-    } else {
-      const usage = commandLineUsage(optionDefs["optionDefinitions"]);
-      console.log(usage);
     }
   }
 
@@ -533,23 +494,5 @@ export class OMGCLI {
       fee,
       metadata: "1337"
     });
-  }
-
-  async getFees() {
-    return await rpcAPI.post({
-      url: `${this.config.watcher_url}/fees.all`,
-      body: "",
-      proxyUrl: ""
-    });
-  }
-
-  async getFee(currency: any) {
-    const fees = await this.getFees();
-    for (const fee of fees["1"]) {
-      if (fee.currency === currency) {
-        return fee.amount;
-      }
-    }
-    throw `Error: No fees discovered for ${currency}`;
   }
 }
