@@ -86,6 +86,9 @@ async function run() {
   } else if (options["addExitQueue"]) {
     const txReceipt = await omgcli.addToken(options["addExitQueue"]);
     Util.printExplorerLinks(txReceipt, config);
+  } else if (options["getExitQueue"]) {
+    const result = await omgcli.getExitQueue(options["getExitQueue"]);
+    Util.printObject(result);
   } else if (options["processExits"]) {
     const txReceipt = await omgcli.processExits(options["processExits"]);
     Util.printExplorerLinks(txReceipt, config);
@@ -171,11 +174,11 @@ async function run() {
     const txRaw = fs.readFileSync(options["startIFE"]);
     const exitData = JSONbig.parse(txRaw);
 
-    const receipt = await omgcli.startSE(exitData);
-    Util.printEtherscanLink(receipt.transactionHash, config);
+    const receipt = await omgcli.startIFE(exitData);
+    Util.printExplorerLinks(receipt, config);
   } else if (options["piggybackIFEOnInput"]) {
     const txReceipt = await omgcli.piggybackIFEOnOutput(
-      options["piggybackIFEOnOutput"],
+      options["piggybackIFEOnInput"],
       options["inputIndex"]
     );
     Util.printExplorerLinks(txReceipt, config);

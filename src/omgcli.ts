@@ -34,7 +34,7 @@ export class OMGCLI {
       privateKey: config.alice_eth_address_private_key,
       from: config.alice_eth_address,
       gas: 6000000,
-      gasPrice: "1000000000"
+      gasPrice: "8000000000"
     };
   }
 
@@ -78,6 +78,10 @@ export class OMGCLI {
         return utxo;
       }
     }
+  }
+
+  async getExitQueue(address: String) {
+    return await this.rootChain.getExitQueue(address);
   }
 
   async getExitPeriod() {

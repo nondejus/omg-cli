@@ -50,7 +50,13 @@ const optionDefinitions = [
         name: "addExitQueue",
         type: String,
         typeLabel: "{underline address}",
-        description: "Add an exist queue for ETH/token"
+        description: "Add a queue for ETH or a token"
+      },
+      {
+        name: "getExitQueue",
+        type: String,
+        typeLabel: "{underline address}",
+        description: "Get the queue for ETH or a token"
       },
       {
         name: "setTxOptions",
