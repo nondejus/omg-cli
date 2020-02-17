@@ -5,12 +5,10 @@ const RootChain = require("@omisego/omg-js-rootchain/src/rootchain");
 const txUtils = require("@omisego/omg-js-rootchain/src/txUtils");
 
 import { Util } from "./util";
-import { Load } from "./load";
 
 const fs = require("fs");
 const BigNumber = require("bn.js");
 const JSONbig = require("json-bigint");
-const sleep = require("sleep");
 const Web3 = require("web3");
 
 export class OMGCLI {
@@ -81,6 +79,16 @@ export class OMGCLI {
 
   async getBalance(address: String) {
     return await this.childChain.getBalance(address);
+  }
+
+  async getStatus() {
+    return await this.childChain.status();
+  }
+
+  async getIFEId(tx: any) {
+    return await this.rootChain.getInFlightExitId({
+      txBytes: tx
+    });
   }
 
   async getSEData(utxoPos: Number) {
@@ -231,248 +239,89 @@ export class OMGCLI {
     };
   }
 
-  async run(options: any) {
-    if (options["addFeesToTx"]) {
-      const createdTx = await this.prepareTx(options["addFeesToTx"]);
-      Util.printObject(createdTx.transactions[0]);
-      return createdTx.transactions[0];
-    } else if (options["sendTx"]) {
-      let tx;
-      if (fs.existsSync(options["sendTx"])) {
-        const txRaw = fs.readFileSync(options["sendTx"]);
-        tx = JSONbig.parse(txRaw);
-      } else {
-        tx = options["sendTx"];
-      }
-
-      const typedData = transaction.getTypedData(
-        tx,
-        this.config.plasmaframework_contract_address
-      );
-
-      const privateKeys = new Array(1).fill(this.txOptions.privateKey);
-      const signatures = this.childChain.signTransaction(
-        typedData,
-        privateKeys
-      );
-
-      const signedTxn = this.childChain.buildSignedTransaction(
-        typedData,
-        signatures
-      );
-      Util.printObject(signedTxn, "Signed Tx");
-
-      let receipt = await this.childChain.submitTransaction(signedTxn);
-      Util.printObject(receipt, "Tx receipt");
-      Util.printOMGBlockExplorerLink(receipt.txhash, this.config);
-      return receipt;
-    } else if (options["piggybackIFEOnOutput"]) {
-      const receipt = await this.rootChain.piggybackInFlightExitOnOutput({
-        inFlightTx: options["piggybackIFEOnOutput"],
-        outputIndex: options["outputIndex"],
-        txOptions: this.txOptions
-      });
-      Util.printEtherscanLink(receipt.transactionHash, this.config);
-      return receipt;
-    } else if (options["piggybackIFEOnInput"]) {
-      const receipt = await this.rootChain.piggybackInFlightExitOnInput({
-        inFlightTx: options["piggybackIFEOnInput"],
-        inputIndex: options["inputIndex"],
-        txOptions: this.txOptions
-      });
-      Util.printEtherscanLink(receipt.transactionHash, this.config);
-      return receipt;
-    } else if (options["getIFEId"]) {
-      const exitId = await this.rootChain.getInFlightExitId({
-        txBytes: options["getIFEId"]
-      });
-      console.log("Exit id: ", exitId);
-      return exitId;
-    } else if (options["challengeIFEInputSpent"]) {
-      const challengeData = await this.childChain.inFlightExitGetInputChallengeData(
-        options["challengeIFEInputSpent"],
-        Number(options["inputIndex"])
-      );
-
-      Util.printObject(challengeData);
-
-      const receipt = await this.rootChain.challengeInFlightExitInputSpent({
-        inFlightTx: challengeData.in_flight_txbytes,
-        inFlightTxInputIndex: challengeData.in_flight_input_index,
-        challengingTx: challengeData.spending_txbytes,
-        challengingTxInputIndex: challengeData.spending_input_index,
-        challengingTxWitness: challengeData.spending_sig,
-        inputTx: challengeData.input_tx,
-        inputUtxoPos: challengeData.input_utxo_pos,
-        txOptions: this.txOptions
-      });
-
-      Util.printEtherscanLink(receipt.transactionHash, this.config);
-      return receipt;
-    } else if (options["challengeIFEOutputSpent"]) {
-      const challengeData = await this.childChain.inFlightExitGetOutputChallengeData(
-        options["challengeIFEOutputSpent"],
-        options["inputIndex"]
-      );
-
-      const receipt = await this.rootChain.challengeInFlightExitOutputSpent({
-        inFlightTx: challengeData.in_flight_txbytes,
-        inFlightTxInclusionProof: challengeData.in_flight_proof,
-        inFlightTxOutputPos: challengeData.in_flight_output_pos,
-        challengingTx: challengeData.spending_txbytes,
-        challengingTxInputIndex: challengeData.spending_input_index,
-        challengingTxWitness: challengeData.spending_sig,
-        txOptions: this.txOptions
-      });
-      Util.printEtherscanLink(receipt.transactionHash, this.config);
-      return receipt;
-    } else if (options["challengeIFENotCanonical"]) {
-      const competitor = await this.childChain.inFlightExitGetCompetitor(
-        options["challengeIFENotCanonical"]
-      );
-
-      const receipt = await this.rootChain.challengeInFlightExitNotCanonical({
-        inputTx: competitor.input_tx,
-        inputUtxoPos: competitor.input_utxo_pos,
-        inFlightTx: competitor.in_flight_txbytes,
-        inFlightTxInputIndex: competitor.in_flight_input_index,
-        competingTx: competitor.competing_txbytes,
-        competingTxInputIndex: competitor.competing_input_index,
-        competingTxPos: competitor.competing_tx_pos,
-        competingTxInclusionProof: competitor.competing_proof,
-        competingTxWitness: competitor.competing_sig,
-        txOptions: this.txOptions
-      });
-      Util.printEtherscanLink(receipt.transactionHash, this.config);
-      return receipt;
-    } else if (options["respondToNonCanonicalChallenge"]) {
-      const proof = await this.childChain.inFlightExitProveCanonical(
-        options["challengeIFENotCanonical"]
-      );
-
-      const receipt = await this.rootChain.respondToNonCanonicalChallenge({
-        inFlightTx: proof.in_flight_txbytes,
-        inFlightTxPos: proof.in_flight_tx_pos,
-        inFlightTxInclusionProof: proof.in_flight_proof,
-        txOptions: this.txOptions
-      });
-      Util.printEtherscanLink(receipt.transactionHash, this.config);
-      return receipt;
-    } else if (options["deleteNonPiggybackedIFE"]) {
-      const exitId = await this.rootChain.getInFlightExitId({
-        txBytes: options["deleteNonPiggybackedIFE"]
-      });
-
-      console.log("Exit id: ", exitId);
-      const receipt = await this.rootChain.deleteNonPiggybackedInFlightExit({
-        exitId,
-        txOptions: this.txOptions
-      });
-
-      console.log(`IFE successfully deleted`);
-      Util.printEtherscanLink(receipt.transactionHash, this.config);
-    } else if (options["processExits"]) {
-      const receipt = await this.rootChain.processExits({
-        token: options["processExits"],
-        exitId: 0,
-        maxExitsToProcess: 20,
-        txOptions: this.txOptions
-      });
-
-      console.log(`Exits for queue ${options["processExits"]} processed`);
-      Util.printEtherscanLink(receipt.transactionHash, this.config);
-      return receipt;
-    } else if (options["addExitQueue"]) {
-      const hasToken = await this.rootChain.hasToken(options["addExitQueue"]);
-      if (!hasToken) {
-        console.log(`Adding exit queue for ${options["addExitQueue"]}`);
-        const receipt = await this.rootChain.addToken({
-          token: options["addExitQueue"],
-          txOptions: this.txOptions
-        });
-        Util.printEtherscanLink(receipt.transactionHash, this.config);
-        return receipt;
-      } else {
-        console.log(
-          `Exit Queue for ${options["addExitQueue"]} has already been added`
-        );
-      }
-    } else if (options["getExitQueue"]) {
-      const queue = await this.rootChain.getExitQueue(options["getExitQueue"]);
-      Util.printObject(queue);
-      return queue;
-    } else if (options["getByzantineEvents"]) {
-      const response = await this.childChain.status();
-
-      if (response["byzantine_events"].length) {
-        Util.printObject(response["byzantine_events"], "Byzantine events");
-      } else {
-        console.log("No Byzantine events");
-      }
-
-      return response;
-    } else if (options["getIFEs"]) {
-      const response = await this.childChain.status();
-
-      if (response["in_flight_exits"].length) {
-        Util.printObject(response["in_flight_exits"]);
-      } else {
-        console.log("No IFEs");
-      }
-
-      return response;
-    } else if (options["autoChallenge"]) {
-      console.log("---> Watching for Byzantine events <---");
-      let processedEvents: String[] = [];
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        const response = await this.childChain.status();
-
-        for (const event of response["byzantine_events"]) {
-          if (
-            event.details.utxo_pos &&
-            event.event === "invalid_exit" &&
-            !processedEvents.includes(event.details.utxo_pos)
-          ) {
-            console.log("---");
-            console.log(
-              `Found Invalid SE exit for ${event.details.utxo_pos}. Challenge coming up.`
-            );
-            const challengeData = await this.childChain.getChallengeData(
-              event.details.utxo_pos
-            );
-
-            const receipt = await this.rootChain.challengeStandardExit({
-              standardExitId: challengeData.exit_id,
-              exitingTx: challengeData.exiting_tx,
-              challengeTx: challengeData.txbytes,
-              inputIndex: challengeData.input_index,
-              challengeTxSig: challengeData.sig,
-              txOptions: this.txOptions
-            });
-
-            processedEvents.push(event.details.utxo_pos);
-
-            console.log(`Challenge SE successful`);
-            Util.printEtherscanLink(receipt.transactionHash, this.config);
-            console.log("---");
-          }
-        }
-        sleep.sleep(60);
-      }
-    } else if (options["parallelRuns"] && options["iterations"]) {
-      const load = new Load(options["parallelRuns"], options["iterations"]);
-      load.run();
-    }
+  async piggybackIFEOnInput(tx: String, inputIndex: Number) {
+    return await this.rootChain.piggybackInFlightExitOnInput({
+      inFlightTx: tx,
+      inputIndex: inputIndex,
+      txOptions: this.txOptions
+    });
   }
 
-  async prepareTx(file: String, customTxOptions?: any) {
-    if (customTxOptions) {
-      const txOptionsRaw = fs.readFileSync(customTxOptions);
-      this.txOptions = JSON.parse(txOptionsRaw);
-    }
+  async piggybackIFEOnOutput(tx: String, outputIndex: Number) {
+    return await this.rootChain.piggybackInFlightExitOnOutput({
+      inFlightTx: tx,
+      outputIndex: outputIndex,
+      txOptions: this.txOptions
+    });
+  }
 
-    const txRaw = fs.readFileSync(file);
+  async getChallengeIFEOutputSpentData(tx: any, outputIndex: Number) {
+    return await this.childChain.inFlightExitGetOutputChallengeData(
+      tx,
+      outputIndex
+    );
+  }
+
+  async challengeIFEOutputSpent(challengeData: any) {
+    return await this.rootChain.challengeInFlightExitOutputSpent({
+      inFlightTx: challengeData.in_flight_txbytes,
+      inFlightTxInclusionProof: challengeData.in_flight_proof,
+      inFlightTxOutputPos: challengeData.in_flight_output_pos,
+      challengingTx: challengeData.spending_txbytes,
+      challengingTxInputIndex: challengeData.spending_input_index,
+      challengingTxWitness: challengeData.spending_sig,
+      txOptions: this.txOptions
+    });
+  }
+
+  async getChallengeIFEInputSpentData(tx: any, inputIndex: Number) {
+    return await this.childChain.inFlightExitGetInputChallengeData(
+      tx,
+      inputIndex
+    );
+  }
+
+  async challengeIFEInputSpent(challengeData: any) {
+    return await this.rootChain.challengeInFlightExitInputSpent({
+      inFlightTx: challengeData.in_flight_txbytes,
+      inFlightTxInputIndex: challengeData.in_flight_input_index,
+      challengingTx: challengeData.spending_txbytes,
+      challengingTxInputIndex: challengeData.spending_input_index,
+      challengingTxWitness: challengeData.spending_sig,
+      inputTx: challengeData.input_tx,
+      inputUtxoPos: challengeData.input_utxo_pos,
+      txOptions: this.txOptions
+    });
+  }
+
+  async challengeIFENotCanonical(competitor: any) {
+    return await this.rootChain.challengeInFlightExitNotCanonical({
+      inputTx: competitor.input_tx,
+      inputUtxoPos: competitor.input_utxo_pos,
+      inFlightTx: competitor.in_flight_txbytes,
+      inFlightTxInputIndex: competitor.in_flight_input_index,
+      competingTx: competitor.competing_txbytes,
+      competingTxInputIndex: competitor.competing_input_index,
+      competingTxPos: competitor.competing_tx_pos,
+      competingTxInclusionProof: competitor.competing_proof,
+      competingTxWitness: competitor.competing_sig,
+      txOptions: this.txOptions
+    });
+  }
+
+  async getChallengeDataIFENotCanonical(tx: any) {
+    return await this.childChain.inFlightExitGetCompetitor(tx);
+  }
+
+  async deleteNonPiggybackedIFE(exitId: String) {
+    return await this.rootChain.deleteNonPiggybackedInFlightExit({
+      exitId,
+      txOptions: this.txOptions
+    });
+  }
+
+  async addFeesToTx(pathToJSONFile: String) {
+    const txRaw = fs.readFileSync(pathToJSONFile);
     const tx = JSONbig.parse(txRaw);
     let payments: any = [];
 
@@ -494,5 +343,50 @@ export class OMGCLI {
       fee,
       metadata: "1337"
     });
+  }
+
+  async sendTx(tx: any) {
+    const typedData = transaction.getTypedData(
+      tx,
+      this.config.plasmaframework_contract_address
+    );
+
+    const privateKeys = new Array(1).fill(this.txOptions.privateKey);
+    const signatures = this.childChain.signTransaction(typedData, privateKeys);
+
+    const signedTxn = this.childChain.buildSignedTransaction(
+      typedData,
+      signatures
+    );
+
+    return await this.childChain.submitTransaction(signedTxn);
+  }
+
+  async processExits(asset: String) {
+    return await this.rootChain.processExits({
+      token: asset,
+      exitId: 0,
+      maxExitsToProcess: 20,
+      txOptions: this.txOptions
+    });
+  }
+
+  async addToken(asset: String) {
+    return await this.rootChain.addToken({
+      token: asset,
+      txOptions: this.txOptions
+    });
+  }
+
+  async respondToNonCanonicalIFEChallenge(proof: any) {
+    return await this.rootChain.respondToNonCanonicalChallenge({
+      inFlightTx: proof.in_flight_txbytes,
+      inFlightTxPos: proof.in_flight_tx_pos,
+      inFlightTxInclusionProof: proof.in_flight_proof,
+      txOptions: this.txOptions
+    });
+  }
+  async getProveIFECanonical(tx: String) {
+    return await this.childChain.inFlightExitProveCanonical(tx);
   }
 }

@@ -53,12 +53,6 @@ const optionDefinitions = [
         description: "Add an exist queue for ETH/token"
       },
       {
-        name: "getExitQueue",
-        type: String,
-        typeLabel: "{underline address}",
-        description: "Get items from the exit queue for ETH/token"
-      },
-      {
         name: "setTxOptions",
         type: String,
         typeLabel: "{underline file}",
