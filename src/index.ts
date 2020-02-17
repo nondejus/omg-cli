@@ -57,8 +57,7 @@ async function run() {
     } else {
       console.log("No Byzantine events");
     }
-  }
-  if (options["getIFEId"]) {
+  } else if (options["getIFEId"]) {
     const exitId = await omgcli.getIFEId(options["getIFEId"]);
     console.log("Exit id: ", exitId);
   } else if (options["getIFEs"]) {
@@ -69,8 +68,6 @@ async function run() {
     } else {
       console.log("No IFEs");
     }
-
-    return response;
   } else if (options["deposit"]) {
     let result;
     if (options["amount"]) {
@@ -92,6 +89,52 @@ async function run() {
   } else if (options["processExits"]) {
     const txReceipt = await omgcli.processExits(options["processExits"]);
     Util.printExplorerLinks(txReceipt, config);
+  } else if (options["addFees"]) {
+    const txRaw = fs.readFileSync(options["addFees"]);
+    const tx = JSONbig.parse(txRaw);
+
+    const newTx = await omgcli.addFeesToTx(tx);
+
+    if (newTx) {
+      Util.printObject(newTx);
+    } else {
+      console.log(`Error: Could not add fees to the tx`);
+    }
+  } else if (options["generateTx"]) {
+    const utxo = await omgcli.getUTXO(
+      omgcli.txOptions["from"],
+      options["generateTx"]
+    );
+
+    if (utxo) {
+      let inputs: any = [{}];
+      inputs[0].blknum = utxo.blknum;
+      inputs[0].txindex = utxo.txindex;
+      inputs[0].oindex = utxo.oindex;
+
+      let outputs: any = [{}];
+      outputs[0].outputGuard = utxo.owner;
+      outputs[0].currency = utxo.currency;
+      outputs[0].amount = utxo.amount;
+      outputs[0].outputType = 1;
+
+      let tx: any = {
+        transactionType: 1,
+        inputs,
+        outputs,
+        metadata:
+          "0x0000000000000000000000000000000000000000000000000000000000001337"
+      };
+
+      const newTx = await omgcli.addFeesToTx(tx);
+      if (newTx) {
+        Util.printObject(newTx);
+      } else {
+        console.log(`Error: Could not add fees to the tx`);
+      }
+    } else {
+      console.log(`Error: Could not find UTXO`);
+    }
   } else if (options["sendTx"]) {
     const txRaw = fs.readFileSync(options["sendTx"]);
     const tx = JSON.parse(txRaw);
@@ -177,10 +220,10 @@ async function run() {
     const txReceipt = omgcli.challengeIFENotCanonical(challengeData);
     Util.printExplorerLinks(txReceipt, config);
   } else if (options["deleteNonPiggybackedIFE"]) {
-    const txReceipt = await omgcli.deleteNonPiggybackedIFE(
-      options["deleteNonPiggybackedIFE"]
-    );
-    Util.printOMGBlockExplorerLink(txReceipt, config);
+    const exitId = await omgcli.getIFEId(options["deleteNonPiggybackedIFE"]);
+
+    const txReceipt = await omgcli.deleteNonPiggybackedIFE(exitId);
+    Util.printExplorerLinks(txReceipt, config);
   } else if (options["autoChallenge"]) {
     console.log("---> Watching for Byzantine events <---");
     let processedEvents: String[] = [];

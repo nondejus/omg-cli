@@ -84,12 +84,7 @@ export class Load {
                     "0x0000000000000000000000000000000000000000000000000000000000001337"
                 };
 
-                const cliOptionSendTx = {
-                  sendTx: tx,
-                  setTxOptions: "tx/txOptions-charlie.json"
-                };
-
-                await this.omgcli.run(cliOptionSendTx);
+                await this.omgcli.sendTx(tx);
 
                 //console.log(txReceipt);
               }

@@ -92,18 +92,25 @@ const optionDefinitions = [
     header: "Plasma",
     optionList: [
       {
-        name: "addFeesToTx",
+        name: "addFees",
         alias: "f",
         type: String,
         typeLabel: "{underline file}",
-        description: "Send a transaction on the plasma chain from json file"
+        description: "Attempt to add fees to a tx"
+      },
+      {
+        name: "generateTx",
+        alias: "g",
+        type: String,
+        typeLabel: "{underline number}",
+        description: "Generate a tx including fees from UTXO"
       },
       {
         name: "sendTx",
         alias: "s",
         type: String,
         typeLabel: "{underline file}",
-        description: "Send a transaction on the plasma chain from json file"
+        description: "Send a transaction on the plasma chain"
       },
       {
         name: "getUTXOs",
@@ -133,7 +140,7 @@ const optionDefinitions = [
       {
         name: "startSE",
         type: String,
-        typeLabel: "{underline exitDataFile}",
+        typeLabel: "{underline file}",
         description: "Start a standard exit"
       },
       {
@@ -145,7 +152,7 @@ const optionDefinitions = [
       {
         name: "challengeSE",
         type: String,
-        typeLabel: "{underline challengeDataFile}",
+        typeLabel: "{underline file}",
         description: "Challenge a standard exit"
       }
     ]
@@ -161,13 +168,13 @@ const optionDefinitions = [
       {
         name: "getIFEData",
         type: String,
-        typeLabel: "{underline IFEDataFile}",
-        description: "Get IN-Flight exit data"
+        typeLabel: "{underline file}",
+        description: "Get IN-Flight exit data from a decoded tx"
       },
       {
         name: "startIFE",
         type: String,
-        typeLabel: "{underline IFEExitDataFile}",
+        typeLabel: "{underline file}",
         description: "Start an IN-Flight exit"
       },
       {
@@ -231,8 +238,8 @@ const optionDefinitions = [
       {
         name: "deleteNonPiggybackedIFE",
         type: String,
-        typeLabel: "{underline tx}",
-        description: "Delete a none piggy backed IFE"
+        typeLabel: "{underline string}",
+        description: "Delete a non piggy backed IFE"
       }
     ]
   },

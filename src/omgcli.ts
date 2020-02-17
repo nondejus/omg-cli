@@ -4,11 +4,8 @@ const rpcAPI = require("@omisego/omg-js-childchain/src/rpc/rpcApi");
 const RootChain = require("@omisego/omg-js-rootchain/src/rootchain");
 const txUtils = require("@omisego/omg-js-rootchain/src/txUtils");
 
-import { Util } from "./util";
-
 const fs = require("fs");
 const BigNumber = require("bn.js");
-const JSONbig = require("json-bigint");
 const Web3 = require("web3");
 
 export class OMGCLI {
@@ -71,6 +68,16 @@ export class OMGCLI {
 
   async getUTXOs(address: String) {
     return await this.childChain.getUtxos(address);
+  }
+
+  async getUTXO(address: String, utxoPos: Number) {
+    const utxos = await this.childChain.getUtxos(address);
+
+    for (const utxo of utxos) {
+      if (utxo.utxo_pos == utxoPos) {
+        return utxo;
+      }
+    }
   }
 
   async getExitPeriod() {
@@ -320,29 +327,23 @@ export class OMGCLI {
     });
   }
 
-  async addFeesToTx(pathToJSONFile: String) {
-    const txRaw = fs.readFileSync(pathToJSONFile);
-    const tx = JSONbig.parse(txRaw);
-    let payments: any = [];
+  async addFeesToTx(tx: any) {
+    const fees = await this.getFees();
+    for (const fee of fees["1"]) {
+      for (let i = 0; i < tx.outputs.length; i++) {
+        const feeAmount = new BigNumber(fee.amount);
+        const outputAmount = new BigNumber(tx.outputs[i].amount);
 
-    for (const output of tx.outputs) {
-      payments.push({
-        owner: output.outputGuard,
-        currency: transaction.ETH_CURRENCY,
-        amount: output.amount
-      });
+        if (
+          fee.currency === tx.outputs[i].currency &&
+          feeAmount.lt(outputAmount)
+        ) {
+          const newOutputAmount = outputAmount.sub(feeAmount);
+          tx.outputs[i].amount = newOutputAmount;
+          return tx;
+        }
+      }
     }
-
-    const fee = {
-      currency: transaction.ETH_CURRENCY
-    };
-
-    return await this.childChain.createTransaction({
-      owner: this.txOptions.from,
-      payments,
-      fee,
-      metadata: "1337"
-    });
   }
 
   async sendTx(tx: any) {
