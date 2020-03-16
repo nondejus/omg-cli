@@ -177,7 +177,7 @@ async function run() {
     const receipt = await omgcli.startIFE(exitData);
     Util.printExplorerLinks(receipt, config);
   } else if (options["piggybackIFEOnInput"]) {
-    const txReceipt = await omgcli.piggybackIFEOnOutput(
+    const txReceipt = await omgcli.piggybackIFEOnInput(
       options["piggybackIFEOnInput"],
       options["inputIndex"]
     );
