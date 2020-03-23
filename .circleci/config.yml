@@ -16,4 +16,4 @@ jobs:
           command: npm run linter
       - run:
           name: "Run unit tests"
-          command: npm run test
+          command: npm run unit-test
