@@ -26,6 +26,7 @@ test("Decode a tx correctly and print it", () => {
 
   expect(expected).toBe(decodedTx);
 });
+
 /*
 test("Get the Min Exit Period from the PlasmaFramework", async () => {
   console.log = jest.fn();
@@ -37,17 +38,6 @@ test("Get the Min Exit Period from the PlasmaFramework", async () => {
 
   const ret = console.log.mock.calls[0][0];
   expect(Number(ret)).toBeGreaterThan(0);
-});
-
-test("Get UTXOs for an address", async () => {
-  console.log = jest.fn();
-  const cliOptions = {
-    getUTXOs: config.alice_eth_address
-  };
-
-  await omgJSMain(cliOptions);
-  const ret = console.log.mock.calls[0][0];
-  expect(JSON.parse(ret)).toBeInstanceOf(Array);
 });
 
 test("RLP encode a tx from a JSON file", async () => {
