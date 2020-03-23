@@ -1,6 +1,5 @@
 const { transaction } = require("@omisego/omg-js-util/src");
 const ChildChain = require("@omisego/omg-js-childchain/src/childchain");
-const rpcAPI = require("@omisego/omg-js-childchain/src/rpc/rpcApi");
 const RootChain = require("@omisego/omg-js-rootchain/src/rootchain");
 const txUtils = require("@omisego/omg-js-rootchain/src/txUtils");
 

@@ -1,5 +1,4 @@
 import { OMGCLI } from "../src/omgcli";
-const { transaction } = require("@omisego/omg-js-util/src");
 const config = require("../config.js");
 
 jest.setTimeout(200000);
@@ -51,7 +50,11 @@ test("Get fees", async () => {
 test.only("Process exits for ETH", async () => {
   try {
     await omgcli.addToken("0x0000000000000000000000000000000000000000");
-  } catch (err) {}
+  } catch (err) {
+    console.log(
+      `Adding the ETH token failed. Likely this is because it has been added already.`
+    );
+  }
 
   let receiptProcessExits;
   let error;
