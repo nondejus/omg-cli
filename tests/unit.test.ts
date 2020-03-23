@@ -138,16 +138,7 @@ test("Process exits for ETH", async () => {
   expect(processReceipt.transactionHash.length).toBeGreaterThan(0);
 });
 
-test("Get events", async () => {
-  console.log = jest.fn();
-  const cliOptions = {
-    getEvents: true
-  };
-  await omgJSMain(cliOptions);
-  const ret = console.log.mock.calls[0][0];
 
-  expect(ret).toContain("Byzantine");
-});
 
 async function getUnspentUTXO(owner, currency) {
   console.log = jest.fn();

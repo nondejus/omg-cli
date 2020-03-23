@@ -161,11 +161,7 @@ export class OMGCLI {
   }
 
   async getFees() {
-    return await rpcAPI.post({
-      url: `${this.config.watcher_url}/fees.all`,
-      body: "",
-      proxyUrl: ""
-    });
+    return await this.childChain.getFees();
   }
 
   async getFee(currency: any) {
