@@ -1,8 +1,6 @@
 import { OMGCLI } from "../src/omgcli";
 const { transaction } = require("@omisego/omg-js-util/src");
 const config = require("../config.js");
-const awaitTransactionMined = require("await-transaction-mined");
-const POLL_INTERVAL = 5000;
 
 jest.setTimeout(200000);
 
@@ -52,9 +50,7 @@ test("Get fees", async () => {
 
 test.only("Process exits for ETH", async () => {
   try {
-    const receiptAddToken = await omgcli.addToken(
-      "0x0000000000000000000000000000000000000000"
-    );
+    await omgcli.addToken("0x0000000000000000000000000000000000000000");
   } catch (err) {}
 
   let receiptProcessExits;
