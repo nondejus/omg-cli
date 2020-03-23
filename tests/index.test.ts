@@ -1,26 +1,32 @@
 /* eslint-disable no-undef */
 const fs = require("fs");
-const { omgJSMain, config, web3 } = require("../src/omgcli");
-const { transaction } = require("@omisego/omg-js-util/src");
-const awaitTransactionMined = require("await-transaction-mined");
+import { OMGCLI } from "../src/omgcli";
+//const { transaction } = require("@omisego/omg-js-util/src");
+//const awaitTransactionMined = require("await-transaction-mined");
+
+const config = require("../config.js");
 
 jest.setTimeout(200000);
 
-let processingUTXOPos = [];
+let omgcli: OMGCLI;
+//let processingUTXOPos: number[] = [];
 
-test("Decode a tx correctly and print it", () => {
-  console.log = jest.fn();
-  const cliOptions = {
-    decode:
-      "0xf85a01c0f5f401f294d42b31665b93c128541c8b89a0e545afb08b7dd894000000000000000000000000000000000000000087038d7ea4c6800080a00000000000000000000000000000000000000000000000000000000000000000"
-  };
-
-  const output = fs.readFileSync("./tests/fixtures/decodedTx.txt").toString();
-  omgJSMain(cliOptions);
-
-  expect(console.log).toHaveBeenCalledWith(output);
+beforeEach(() => {
+  omgcli = new OMGCLI(config);
+  // processingUTXOPos = [];
 });
 
+test("Decode a tx correctly and print it", () => {
+  const encodedTx: String =
+    "0xf85a01c0f5f401f294d42b31665b93c128541c8b89a0e545afb08b7dd894000000000000000000000000000000000000000087038d7ea4c6800080a00000000000000000000000000000000000000000000000000000000000000000";
+
+  const raw = fs.readFileSync("./tests/fixtures/decodedTx.txt");
+  const expected = JSON.parse(raw).toString();
+  const decodedTx = omgcli.decode(encodedTx).toString();
+
+  expect(expected).toBe(decodedTx);
+});
+/*
 test("Get the Min Exit Period from the PlasmaFramework", async () => {
   console.log = jest.fn();
   const cliOptions = {
@@ -190,4 +196,4 @@ async function getUnspentUTXO(owner, currency) {
     }
   }
   throw "No unspent UTXO found. Aborting test run.";
-}
+}*/

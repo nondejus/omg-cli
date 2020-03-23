@@ -4,15 +4,17 @@
   "description": "",
   "main": "omg-js-cli",
   "scripts": {
-    "test": "npx jest ",
+    "test": "npx jest",
     "clean": "rm -rf dist",
     "build": "npx tsc",
     "linter": "npx eslint --ext .js,.ts ./src ./tests"
   },
   "dependencies": {
-    "@omisego/omg-js": "^3.0.0-alpha.15",
-    "@types/jest": "^24.9.0",
+    "@omisego/omg-js": "v3.0.3-0.4.5",
+    "@types/mocha": "^7.0.2",
     "@types/node": "^13.1.7",
+    "@types/jest": "^24.9.1",
+    "jest": "^24.9.0",
     "async": "^3.1.1",
     "await-transaction-mined": "^1.0.12",
     "bignumber.js": "^9.0.0",
@@ -30,11 +32,7 @@
     "request-promise-native": "^1.0.8",
     "rlp": "^2.2.4",
     "sleep": "^6.1.0",
-    "tmp": "^0.1.0",
-    "ts-jest": "^24.3.0",
-    "web3": "^1.2.5-rc.0",
-    "webpack": "^4.17.1",
-    "webpack-cli": "^3.1.0"
+    "web3": "^1.2.5-rc.0"
   },
   "keywords": [],
   "author": "Gerhard Wagner",
@@ -44,8 +42,8 @@
     "@typescript-eslint/parser": "^2.17.0",
     "eslint": "^6.8.0",
     "eslint-plugin-import": "^2.20.0",
-    "jest": "^24.9.0",
     "source-map-support": "^0.5.16",
+    "ts-jest": "^24.3.0",
     "typescript": "^3.7.5"
   }
 }

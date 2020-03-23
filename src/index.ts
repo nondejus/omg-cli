@@ -33,7 +33,7 @@ async function run() {
 
   if (options["decode"]) {
     const decodedTx = omgcli.decode(options["decode"]);
-    Util.printObject(decodedTx, "RLP decoded tx");
+    Util.printObject(decodedTx, "");
   } else if (options["getUTXOs"]) {
     const utxos = await omgcli.getUTXOs(options["getUTXOs"]);
     Util.printObject(utxos);
