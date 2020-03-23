@@ -47,7 +47,7 @@ test("Get fees", async () => {
   expect(response).toBeInstanceOf(Object);
 });
 
-test.only("Process exits for ETH", async () => {
+test("Process exits for ETH", async () => {
   try {
     await omgcli.addToken("0x0000000000000000000000000000000000000000");
   } catch (err) {
