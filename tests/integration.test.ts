@@ -17,3 +17,18 @@ test("Get UTXOs for an address", async () => {
 
   expect(response).toBeInstanceOf(Array);
 });
+
+/*
+test("Get the Min Exit Period from the PlasmaFramework", async () => {
+  console.log = jest.fn();
+  const cliOptions = {
+    getExitPeriod: true
+  };
+
+  await omgJSMain(cliOptions);
+
+  const ret = console.log.mock.calls[0][0];
+  expect(Number(ret)).toBeGreaterThan(0);
+});
+
+*/

@@ -47,8 +47,7 @@ async function run() {
     Util.printObject(await omgcli.getFees());
   } else if (options["encode"]) {
     const result = omgcli.encode(options["encode"]);
-    console.log(`Encoded Tx without signature: ${result.tx}`);
-    console.log(`Encoded Tx with signature: ${result.signedTx}`);
+    Util.printObject(result);
   } else if (options["getByzantineEvents"]) {
     const response = await omgcli.getStatus();
 

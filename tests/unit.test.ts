@@ -22,37 +22,22 @@ test("Decode a tx correctly and print it", () => {
 
   const raw = fs.readFileSync("./tests/fixtures/decodedTx.txt");
   const expected = JSON.parse(raw).toString();
-  const decodedTx = omgcli.decode(encodedTx).toString();
+  const response = omgcli.decode(encodedTx).toString();
 
-  expect(expected).toBe(decodedTx);
-});
-
-/*
-test("Get the Min Exit Period from the PlasmaFramework", async () => {
-  console.log = jest.fn();
-  const cliOptions = {
-    getExitPeriod: true
-  };
-
-  await omgJSMain(cliOptions);
-
-  const ret = console.log.mock.calls[0][0];
-  expect(Number(ret)).toBeGreaterThan(0);
+  expect(expected).toBe(response);
 });
 
 test("RLP encode a tx from a JSON file", async () => {
-  console.log = jest.fn();
+  const response = omgcli.encode("./tests/fixtures/tx1.json");
 
-  const cliOptions = {
-    encode: "./tests/fixtures/tx1.json"
-  };
-
-  await omgJSMain(cliOptions);
-  const ret = console.log.mock.calls[0][0];
-  expect(ret).toBe(
+  expect(response.tx).toEqual(
     "0xf87480e1a000000000000000000000000000000000000000000000000000001a6016b2d000eeed01eb94d42b31665b93c128541c8b89a0e545afb08b7dd89400000000000000000000000000000000000000000180a00000000000000000000000000000000000000000000000000000000000000000"
   );
+  expect(response.signedTx).toEqual(
+    "0xf8b9f843b84145b1f3b7d51c7288e45d8824b87015a9b82f1906b802c565fa6c7a30a6c5f8845c4a30d0b3bdc0db76f491d88add0e06c18e1d43d1e97c362a8355fec3b3c8ef1b01e1a000000000000000000000000000000000000000000000000000001a6016b2d000eeed01eb94d42b31665b93c128541c8b89a0e545afb08b7dd89400000000000000000000000000000000000000000180a00000000000000000000000000000000000000000000000000000000000000000"
+  );
 });
+/*
 
 test(`Deposit some ETH from cli params`, async () => {
   const cliOptions = {
