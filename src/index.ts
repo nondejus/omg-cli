@@ -33,7 +33,7 @@ async function run() {
 
   if (options["decode"]) {
     const decodedTx = omgcli.decode(options["decode"]);
-    Util.printObject(decodedTx, "RLP decoded tx");
+    Util.printObject(decodedTx, "");
   } else if (options["getUTXOs"]) {
     const utxos = await omgcli.getUTXOs(options["getUTXOs"]);
     Util.printObject(utxos);
@@ -47,8 +47,7 @@ async function run() {
     Util.printObject(await omgcli.getFees());
   } else if (options["encode"]) {
     const result = omgcli.encode(options["encode"]);
-    console.log(`Encoded Tx without signature: ${result.tx}`);
-    console.log(`Encoded Tx with signature: ${result.signedTx}`);
+    Util.printObject(result);
   } else if (options["getByzantineEvents"]) {
     const response = await omgcli.getStatus();
 

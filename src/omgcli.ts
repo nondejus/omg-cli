@@ -50,9 +50,7 @@ export class OMGCLI {
       this.config.plasmaframework_contract_address
     );
 
-    const privateKeys = new Array(tx.inputs.length).fill(
-      this.txOptions.privateKey
-    );
+    const privateKeys = new Array(1).fill(this.txOptions.privateKey);
     const signatures = this.childChain.signTransaction(typedData, privateKeys);
 
     const signedTx = this.childChain.buildSignedTransaction(

@@ -1,4 +1,4 @@
-RLP decoded tx
+
  {
   "txType": 1,
   "inputs": [],
