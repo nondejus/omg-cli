@@ -1,6 +1,5 @@
 const { transaction } = require("@omisego/omg-js-util/src");
 const ChildChain = require("@omisego/omg-js-childchain/src/childchain");
-const rpcAPI = require("@omisego/omg-js-childchain/src/rpc/rpcApi");
 const RootChain = require("@omisego/omg-js-rootchain/src/rootchain");
 const txUtils = require("@omisego/omg-js-rootchain/src/txUtils");
 
@@ -18,7 +17,7 @@ export class OMGCLI {
 
   constructor(config: any) {
     this.config = config;
-    const web3 = new Web3(new Web3.providers.HttpProvider(config.eth_node));
+    let web3 = new Web3(config.eth_node);
 
     this.childChain = new ChildChain({
       watcherUrl: config.watcher_url,
@@ -50,7 +49,7 @@ export class OMGCLI {
       this.config.plasmaframework_contract_address
     );
 
-    const privateKeys = new Array(1).fill(this.txOptions.privateKey);
+    const privateKeys = [this.txOptions.privateKey];
     const signatures = this.childChain.signTransaction(typedData, privateKeys);
 
     const signedTx = this.childChain.buildSignedTransaction(
@@ -147,9 +146,7 @@ export class OMGCLI {
       this.config.plasmaframework_contract_address
     );
 
-    const privateKeys = new Array(tx.inputs.length).fill(
-      this.txOptions.privateKey
-    );
+    const privateKeys = [this.txOptions.privateKey];
 
     const signatures = this.childChain.signTransaction(typedData, privateKeys);
     const signedTxn = this.childChain.buildSignedTransaction(
@@ -161,11 +158,7 @@ export class OMGCLI {
   }
 
   async getFees() {
-    return await rpcAPI.post({
-      url: `${this.config.watcher_url}/fees.all`,
-      body: "",
-      proxyUrl: ""
-    });
+    return await this.childChain.getFees();
   }
 
   async getFee(currency: any) {
@@ -354,7 +347,7 @@ export class OMGCLI {
       this.config.plasmaframework_contract_address
     );
 
-    const privateKeys = new Array(1).fill(this.txOptions.privateKey);
+    const privateKeys = [this.txOptions.privateKey];
     const signatures = this.childChain.signTransaction(typedData, privateKeys);
 
     const signedTxn = this.childChain.buildSignedTransaction(

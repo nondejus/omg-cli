@@ -1,8 +1,6 @@
 /* eslint-disable no-undef */
 const fs = require("fs");
 import { OMGCLI } from "../src/omgcli";
-//const { transaction } = require("@omisego/omg-js-util/src");
-//const awaitTransactionMined = require("await-transaction-mined");
 
 const config = require("../config.js");
 
@@ -128,26 +126,9 @@ test("Start SE for an unspent UTXO", async () => {
   expect(ret2.transactionHash.length).toBeGreaterThan(0);
 });
 
-test("Process exits for ETH", async () => {
-  const cliOptions = {
-    processExits: transaction.ETH_CURRENCY
-  };
 
-  const processReceipt = await omgJSMain(cliOptions);
-  await awaitTransactionMined.awaitTx(web3, processReceipt.transactionHash);
-  expect(processReceipt.transactionHash.length).toBeGreaterThan(0);
-});
 
-test("Get events", async () => {
-  console.log = jest.fn();
-  const cliOptions = {
-    getEvents: true
-  };
-  await omgJSMain(cliOptions);
-  const ret = console.log.mock.calls[0][0];
 
-  expect(ret).toContain("Byzantine");
-});
 
 async function getUnspentUTXO(owner, currency) {
   console.log = jest.fn();
