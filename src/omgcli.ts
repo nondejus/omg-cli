@@ -358,6 +358,32 @@ export class OMGCLI {
     return await this.childChain.submitTransaction(signedTxn);
   }
 
+  async sendTypedTx(owner: String, currency: String, amount: number) {
+    const payments = [
+      {
+        owner: owner,
+        currency: currency,
+        amount: amount
+      }
+    ];
+
+    const fee = {
+      currency: transaction.ETH_CURRENCY
+    };
+
+    const createdTx = await this.childChain.createTransaction({
+      owner: owner,
+      payments,
+      fee
+    });
+
+    const txTypedData = this.childChain.signTypedData(
+      createdTx.transactions[0],
+      [this.txOptions.privateKey]
+    );
+    return await this.childChain.submitTyped(txTypedData);
+  }
+
   /*
    * utxo_pos needs to be fee enabled and have enough balance to pay the fees
    */

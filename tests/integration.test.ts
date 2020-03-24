@@ -133,6 +133,17 @@ test("Send a tx on the plasma chain", async () => {
   expect(receiptTx).toHaveProperty("txindex");
 });
 
+test("Send a typed tx on the plasma chain", async () => {
+  const receiptTx = await omgcli.sendTypedTx(
+    omgcli.txOptions.from,
+    transaction.ETH_CURRENCY,
+    1
+  );
+  expect(receiptTx).toHaveProperty("blknum");
+  expect(receiptTx).toHaveProperty("txhash");
+  expect(receiptTx).toHaveProperty("txindex");
+});
+
 /*
  * Helper functions
  */

@@ -119,6 +119,12 @@ const optionDefinitions = [
         description: "Send a transaction on the plasma chain"
       },
       {
+        name: "sendTypedTx",
+        type: String,
+        typeLabel: "{underline file}",
+        description: "Send a transaction on the plasma chain sending typed tx"
+      },
+      {
         name: "getUTXOs",
         alias: "u",
         type: String,

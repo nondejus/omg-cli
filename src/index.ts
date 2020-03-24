@@ -115,6 +115,18 @@ async function run() {
 
     const txReceipt = await omgcli.sendTx(tx);
     Util.printOMGBlockExplorerLink(txReceipt.txhash, config);
+  } else if (options["sendTypedTx"]) {
+    let amount = 1;
+    if (options["amount"]) {
+      amount = options["amount"];
+    }
+    const txReceipt = await omgcli.sendTypedTx(
+      omgcli.txOptions.from,
+      options["sendTypedTx"],
+      amount
+    );
+
+    Util.printOMGBlockExplorerLink(txReceipt.txhash, config);
   } else if (options["getSEData"]) {
     Util.printObject(await omgcli.getSEData(parseInt(options["getSEData"])));
   } else if (options["startSE"]) {
