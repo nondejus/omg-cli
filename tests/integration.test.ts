@@ -1,7 +1,6 @@
 import { OMGCLI } from "../src/omgcli";
 const { transaction } = require("@omisego/omg-js-util/src");
 const config = require("../config.js");
-const BN = require("bn.js");
 
 jest.setTimeout(200000);
 
