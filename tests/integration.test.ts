@@ -1,6 +1,7 @@
 import { OMGCLI } from "../src/omgcli";
 const { transaction } = require("@omisego/omg-js-util/src");
 const config = require("../config.js");
+const BN = require("bn.js");
 
 jest.setTimeout(200000);
 
@@ -19,10 +20,18 @@ beforeEach(() => {
   // processingUTXOPos = [];
 });
 
-test("Get UTXOs for an address", async () => {
+test.only("Get UTXOs for an address", async () => {
   const response = await omgcli.getUTXOs(config.alice_eth_address);
 
-  expect(response).toBeInstanceOf(Array);
+  if (response.length) {
+    const utxo = response[0];
+    expect(utxo).toHaveProperty("amount");
+    expect(utxo).toHaveProperty("currency");
+    expect(utxo).toHaveProperty("oindex");
+    expect(utxo).toHaveProperty("txindex");
+    expect(utxo).toHaveProperty("utxo_pos");
+    expect(utxo).toHaveProperty("owner");
+  }
 });
 
 test("Get the Min Exit Period from the PlasmaFramework", async () => {
@@ -41,9 +50,13 @@ test("Get exit queue for ETH", async () => {
   expect(response).toBeInstanceOf(Array);
 });
 
-test("Get fees", async () => {
+test.only("Get fees", async () => {
   const response = await omgcli.getFees();
-  expect(response).toBeInstanceOf(Object);
+  const firstFeeEntry = response["1"][0];
+
+  expect(firstFeeEntry).toHaveProperty("amount");
+  expect(firstFeeEntry).toHaveProperty("currency");
+  expect(firstFeeEntry).toHaveProperty("subunit_to_unit");
 });
 
 test("Process exits for ETH", async () => {
