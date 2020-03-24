@@ -41,7 +41,7 @@ async function run() {
     const exitPeriod = await omgcli.getExitPeriod();
     console.log(`Exit period in seconds: ${exitPeriod}`);
   } else if (options["getBalance"]) {
-    const balance = await omgcli.getUTXOs(options["getBalance"]);
+    const balance = await omgcli.getBalance(options["getBalance"]);
     Util.printObject(balance);
   } else if (options["getFees"]) {
     Util.printObject(await omgcli.getFees());
@@ -103,40 +103,12 @@ async function run() {
       console.log(`Error: Could not add fees to the tx`);
     }
   } else if (options["generateTx"]) {
-    const utxo = await omgcli.getUTXO(
+    const newTx = await omgcli.generateTx(
       omgcli.txOptions["from"],
       options["generateTx"]
     );
 
-    if (utxo) {
-      let inputs: any = [{}];
-      inputs[0].blknum = utxo.blknum;
-      inputs[0].txindex = utxo.txindex;
-      inputs[0].oindex = utxo.oindex;
-
-      let outputs: any = [{}];
-      outputs[0].outputGuard = utxo.owner;
-      outputs[0].currency = utxo.currency;
-      outputs[0].amount = utxo.amount;
-      outputs[0].outputType = 1;
-
-      let tx: any = {
-        transactionType: 1,
-        inputs,
-        outputs,
-        metadata:
-          "0x0000000000000000000000000000000000000000000000000000000000001337"
-      };
-
-      const newTx = await omgcli.addFeesToTx(tx);
-      if (newTx) {
-        Util.printObject(newTx);
-      } else {
-        console.log(`Error: Could not add fees to the tx`);
-      }
-    } else {
-      console.log(`Error: Could not find UTXO`);
-    }
+    Util.printObject(newTx);
   } else if (options["sendTx"]) {
     const txRaw = fs.readFileSync(options["sendTx"]);
     const tx = JSON.parse(txRaw);
