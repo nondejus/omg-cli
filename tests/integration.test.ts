@@ -1,4 +1,5 @@
 import { OMGCLI } from "../src/omgcli";
+const { transaction } = require("@omisego/omg-js-util/src");
 const config = require("../config.js");
 
 jest.setTimeout(200000);
@@ -36,9 +37,7 @@ test("Get events", async () => {
 });
 
 test("Get exit queue for ETH", async () => {
-  const response = await omgcli.getExitQueue(
-    "0x0000000000000000000000000000000000000000"
-  );
+  const response = await omgcli.getExitQueue(transaction.ETH_CURRENCY);
   expect(response).toBeInstanceOf(Array);
 });
 
@@ -49,7 +48,7 @@ test("Get fees", async () => {
 
 test("Process exits for ETH", async () => {
   try {
-    await omgcli.addToken("0x0000000000000000000000000000000000000000");
+    await omgcli.addToken(transaction.ETH_CURRENCY);
   } catch (err) {
     console.log(
       `Adding the ETH token failed. Likely this is because it has been added already.`
@@ -61,9 +60,7 @@ test("Process exits for ETH", async () => {
   try {
     omgcli.txOptions = bobTxOptions;
 
-    receiptProcessExits = await omgcli.processExits(
-      "0x0000000000000000000000000000000000000000"
-    );
+    receiptProcessExits = await omgcli.processExits(transaction.ETH_CURRENCY);
   } catch (err) {
     error = err;
   }
