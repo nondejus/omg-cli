@@ -179,7 +179,7 @@ test.only("Challenge SE for an inactive exit should fail", async () => {
   );
 
   try {
-    const SEChallengeData = await omgcli.getSEChallengeData(utxo.utxo_pos);
+    await omgcli.getSEChallengeData(utxo.utxo_pos);
   } catch (err) {
     expect(err).toEqual(
       new Error(
