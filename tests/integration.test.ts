@@ -147,7 +147,7 @@ test("Send a typed tx on the plasma chain", async () => {
 /*
  * SE functions
  */
-test.only("Get SE data for an unspent UTXO", async () => {
+test("Get SE data for an unspent UTXO", async () => {
   const utxo = await getUnspentUTXO(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY
@@ -159,7 +159,7 @@ test.only("Get SE data for an unspent UTXO", async () => {
   expect(SEData).toHaveProperty("utxo_pos");
 });
 
-test.only("Start SE for an unspent UTXO", async () => {
+test("Start SE for an unspent UTXO", async () => {
   const utxo = await getUnspentUTXO(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY
@@ -172,6 +172,22 @@ test.only("Start SE for an unspent UTXO", async () => {
   expect(receiptSE.transactionHash.length).toBeGreaterThan(0);
 });
 
+test.only("Challenge SE for an inactive exit should fail", async () => {
+  const utxo = await getUnspentUTXO(
+    omgcli.txOptions.from,
+    transaction.ETH_CURRENCY
+  );
+
+  try {
+    const SEChallengeData = await omgcli.getSEChallengeData(utxo.utxo_pos);
+  } catch (err) {
+    expect(err).toEqual(
+      new Error(
+        "The challenge of particular exit is impossible because exit is inactive or missing"
+      )
+    );
+  }
+});
 /*
  * Helper functions
  */
