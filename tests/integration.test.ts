@@ -145,6 +145,34 @@ test("Send a typed tx on the plasma chain", async () => {
 });
 
 /*
+ * SE functions
+ */
+test.only("Get SE data for an unspent UTXO", async () => {
+  const utxo = await getUnspentUTXO(
+    omgcli.txOptions.from,
+    transaction.ETH_CURRENCY
+  );
+
+  const SEData = await omgcli.getSEData(utxo.utxo_pos);
+  expect(SEData).toHaveProperty("proof");
+  expect(SEData).toHaveProperty("txbytes");
+  expect(SEData).toHaveProperty("utxo_pos");
+});
+
+test.only("Start SE for an unspent UTXO", async () => {
+  const utxo = await getUnspentUTXO(
+    omgcli.txOptions.from,
+    transaction.ETH_CURRENCY
+  );
+
+  const SEData = await omgcli.getSEData(utxo.utxo_pos);
+
+  const receiptSE = await omgcli.startSE(SEData);
+
+  expect(receiptSE.transactionHash.length).toBeGreaterThan(0);
+});
+
+/*
  * Helper functions
  */
 async function getUnspentUTXO(owner: String, currency: String) {

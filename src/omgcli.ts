@@ -17,7 +17,7 @@ export class OMGCLI {
 
   constructor(config: any) {
     this.config = config;
-    let web3 = new Web3(config.eth_node);
+    let web3 = new Web3(new Web3.providers.HttpProvider(config.eth_node));
 
     this.childChain = new ChildChain({
       watcherUrl: config.watcher_url,

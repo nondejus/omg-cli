@@ -59,72 +59,7 @@ test(`Deposit some ERC20 tokens from cli params`, async () => {
   expect(depositReceipt.transactionHash.length).toBeGreaterThan(0);
 });
 
-test("Send a tx on the plasma chain", async () => {
-  const utxo = await getUnspentUTXO(
-    config.alice_eth_address,
-    transaction.ETH_CURRENCY
-  );
 
-  // Get a tx template
-  const txRaw = fs.readFileSync("./tests/fixtures/tx2.json");
-  const tx = JSON.parse(txRaw);
-
-  // Replace values with retrieved UTXO values
-  tx.inputs[0].blknum = utxo.blknum;
-  tx.inputs[0].txindex = utxo.txindex;
-  tx.inputs[0].oindex = utxo.oindex;
-  tx.outputs[0].outputGuard = utxo.owner;
-  tx.outputs[0].currency = utxo.currency;
-  tx.outputs[0].amount = parseInt(utxo.amount);
-
-  // Write the JSON back into a file
-  const fNameLog = "./tests/logs/plasma-tx.json";
-  fs.writeFileSync(fNameLog, JSON.stringify(tx, undefined, 2));
-
-  const cliOptions = {
-    transaction: fNameLog
-  };
-
-  // Call cli with the transaction option
-  const ret = await omgJSMain(cliOptions);
-  expect(ret.blknum).toBeGreaterThan(utxo.blknum);
-});
-
-test("Get SE data for an unspent UTXO", async () => {
-  const utxo = await getUnspentUTXO(
-    config.alice_eth_address,
-    transaction.ETH_CURRENCY
-  );
-  const cliOptions = {
-    getSEData: utxo.utxo_pos
-  };
-
-  const ret = await omgJSMain(cliOptions);
-  expect(ret.proof.length).toBeGreaterThan(0);
-});
-
-test("Start SE for an unspent UTXO", async () => {
-  const utxo = await getUnspentUTXO(
-    config.alice_eth_address,
-    transaction.ETH_CURRENCY
-  );
-
-  const cliOptions1 = {
-    getSEData: utxo.utxo_pos
-  };
-
-  const ret1 = await omgJSMain(cliOptions1);
-  const fNameLog = "./tests/logs/startSE.json";
-  fs.writeFileSync(fNameLog, JSON.stringify(ret1, undefined, 2));
-
-  const cliOptions2 = {
-    startSE: fNameLog
-  };
-
-  const ret2 = await omgJSMain(cliOptions2);
-  await awaitTransactionMined.awaitTx(web3, ret2.transactionHash);
-  expect(ret2.transactionHash.length).toBeGreaterThan(0);
-});
 
 
 
