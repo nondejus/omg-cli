@@ -129,27 +129,4 @@ test("Start SE for an unspent UTXO", async () => {
 
 
 
-
-async function getUnspentUTXO(owner, currency) {
-  console.log = jest.fn();
-  const cliOptions1 = {
-    getUTXOs: owner
-  };
-
-  await omgJSMain(cliOptions1);
-  const ret = JSON.parse(console.log.mock.calls[0][0]);
-
-  for (const utxo of ret) {
-    if (!processingUTXOPos.includes(utxo.utxo_pos)) {
-      processingUTXOPos.push(utxo.utxo_pos);
-      if (currency) {
-        if (utxo.currency == currency) {
-          return utxo;
-        }
-      } else {
-        return utxo;
-      }
-    }
-  }
-  throw "No unspent UTXO found. Aborting test run.";
-}*/
+*/

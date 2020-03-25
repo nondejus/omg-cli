@@ -358,6 +358,69 @@ export class OMGCLI {
     return await this.childChain.submitTransaction(signedTxn);
   }
 
+  async sendTypedTx(owner: String, currency: String, amount: number) {
+    const payments = [
+      {
+        owner: owner,
+        currency: currency,
+        amount: amount
+      }
+    ];
+
+    const fee = {
+      currency: transaction.ETH_CURRENCY
+    };
+
+    const createdTx = await this.childChain.createTransaction({
+      owner: owner,
+      payments,
+      fee
+    });
+
+    const txTypedData = this.childChain.signTypedData(
+      createdTx.transactions[0],
+      [this.txOptions.privateKey]
+    );
+    return await this.childChain.submitTyped(txTypedData);
+  }
+
+  /*
+   * utxo_pos needs to be fee enabled and have enough balance to pay the fees
+   */
+  async generateTx(from: String, utxo_pos: number) {
+    const utxo = await this.getUTXO(from, utxo_pos);
+
+    if (utxo) {
+      let inputs: any = [{}];
+      inputs[0].blknum = utxo.blknum;
+      inputs[0].txindex = utxo.txindex;
+      inputs[0].oindex = utxo.oindex;
+
+      let outputs: any = [{}];
+      outputs[0].outputGuard = utxo.owner;
+      outputs[0].currency = utxo.currency;
+      outputs[0].amount = utxo.amount;
+      outputs[0].outputType = 1;
+
+      let tx: any = {
+        transactionType: 1,
+        inputs,
+        outputs,
+        metadata:
+          "0x0000000000000000000000000000000000000000000000000000000000001337"
+      };
+      const newTx = await this.addFeesToTx(tx);
+      if (newTx) {
+        return newTx;
+      } else {
+        throw `Error: Could not add fees to the tx
+        `;
+      }
+    } else {
+      throw `Error: UTXO ${utxo_pos} not found `;
+    }
+  }
+
   async processExits(asset: String) {
     return await this.rootChain.processExits({
       token: asset,

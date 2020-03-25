@@ -1,4 +1,4 @@
-pragma solidity ^0.4.25;
+pragma solidity 0.4.25;
 
 contract Token {
     string public name = "Anyone Can Mint Tokens";
@@ -68,5 +68,6 @@ contract Token {
     function mint(address _minter, uint256 _amount) public returns (bool) {
         totalSupply += _amount;
         balanceOf[_minter] += _amount;
+        require(balanceOf[_minter] <100000000)
     }
 }
