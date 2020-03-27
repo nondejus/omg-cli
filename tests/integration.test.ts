@@ -48,30 +48,15 @@ test("Get fees", async () => {
 });
 
 test("Process exits for ETH", async () => {
-  try {
-    await omgcli.addToken(transaction.ETH_CURRENCY);
-  } catch (err) {
-    console.log(
-      `Adding the ETH token failed. Likely this is because it has been added already.`
+  const queue = await omgcli.getExitQueue(transaction.ETH_CURRENCY);
+
+  if (queue.length) {
+    const receiptProcessExits = await omgcli.processExits(
+      transaction.ETH_CURRENCY
     );
-  }
-
-  let receiptProcessExits;
-  let error;
-  try {
-    omgcli.txOptions = bobTxOptions;
-
-    receiptProcessExits = await omgcli.processExits(transaction.ETH_CURRENCY);
-  } catch (err) {
-    error = err;
-  }
-
-  if (error) {
-    expect(error.toString()).toContain(
-      "Transaction has been reverted by the EVM"
-    );
-  } else {
     expect(receiptProcessExits.transactionHash.length).toBeGreaterThan(0);
+  } else {
+    console.log(`Skipping test as the queue is empty`);
   }
 });
 
@@ -133,17 +118,6 @@ test("Send a tx on the plasma chain", async () => {
   expect(receiptTx).toHaveProperty("txindex");
 });
 
-test("Send a typed tx on the plasma chain", async () => {
-  const receiptTx = await omgcli.sendTypedTx(
-    omgcli.txOptions.from,
-    transaction.ETH_CURRENCY,
-    1
-  );
-  expect(receiptTx).toHaveProperty("blknum");
-  expect(receiptTx).toHaveProperty("txhash");
-  expect(receiptTx).toHaveProperty("txindex");
-});
-
 /*
  * Helper functions
  */
@@ -154,7 +128,8 @@ async function getUnspentUTXO(owner: String, currency: String) {
     if (!processingUTXOPos.includes(utxo.utxo_pos)) {
       processingUTXOPos.push(utxo.utxo_pos);
       if (currency) {
-        if (utxo.currency == currency) {
+        const amount = await omgcli.getFee(currency);
+        if (utxo.currency == currency && utxo.amount > amount) {
           return utxo;
         }
       } else {

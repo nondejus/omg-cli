@@ -4,9 +4,7 @@
   "description": "",
   "main": "omg-js-cli",
   "scripts": {
-    "unit-test": "npx jest tests/unit.test.ts",
-    "integration-test": "npx jest tests/integration.test.ts",
-    "test": "npm run unit-test && npm run integration-test",
+    "test": "npx jest",
     "clean": "rm -rf dist",
     "build": "npx tsc",
     "linter": "npx eslint --ext .js,.ts ./src ./tests"
