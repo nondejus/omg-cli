@@ -11,12 +11,9 @@ const bobTxOptions = {
   gasPrice: "8000000000"
 };
 
-let omgcli: OMGCLI;
-let processingUTXOPos: number[] = [];
+let omgcli: OMGCLI = new OMGCLI(config);
 
-beforeEach(() => {
-  omgcli = new OMGCLI(config);
-});
+let processingUTXOPos: number[] = [];
 
 /*
  * General functions
@@ -133,20 +130,7 @@ test("Get SE data for an unspent UTXO", async () => {
   expect(SEData).toHaveProperty("utxo_pos");
 });
 
-test("Start SE for an unspent UTXO", async () => {
-  const utxo = await getUnspentUTXO(
-    omgcli.txOptions.from,
-    transaction.ETH_CURRENCY
-  );
-
-  const SEData = await omgcli.getSEData(utxo.utxo_pos);
-
-  const receiptSE = await omgcli.startSE(SEData);
-
-  expect(receiptSE.transactionHash.length).toBeGreaterThan(0);
-});
-
-test.only("Challenge SE for an inactive exit should fail", async () => {
+test("Challenge SE for an inactive exit should fail", async () => {
   const utxo = await getUnspentUTXO(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY

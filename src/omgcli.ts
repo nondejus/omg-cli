@@ -63,8 +63,18 @@ export class OMGCLI {
     };
   }
 
-  async getUTXOs(address: String) {
-    return await this.childChain.getUtxos(address);
+  async getUTXOs(address: String, currency?: String) {
+    const utxos = this.childChain.getUtxos(address);
+    if (currency) {
+      let filteredUTXOS = [];
+      for (const utxo of utxos) {
+        if (utxo.currency === currency) {
+          filteredUTXOS.push(utxo);
+        }
+      }
+    } else {
+      return utxos;
+    }
   }
 
   async getUTXO(address: String, utxoPos: Number) {
