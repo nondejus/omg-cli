@@ -3,7 +3,6 @@ const commandLineArgs = require("command-line-args");
 const commandLineUsage = require("command-line-usage");
 const fs = require("fs");
 const JSONbig = require("json-bigint");
-const sleep = require("sleep");
 const optionDefs = require("./options");
 const config = require("../config.js");
 
@@ -212,34 +211,8 @@ async function run() {
     Util.printExplorerLinks(txReceipt, config);
   } else if (options["autoChallenge"]) {
     console.log("---> Watching for Byzantine events <---");
-    let processedEvents: String[] = [];
+    // let processedEvents: String[] = [];
     // eslint-disable-next-line no-constant-condition
-    while (true) {
-      const response = await omgcli.getStatus();
-
-      for (const event of response["byzantine_events"]) {
-        if (
-          event.details.utxo_pos &&
-          event.event === "invalid_exit" &&
-          !processedEvents.includes(event.details.utxo_pos)
-        ) {
-          console.log(
-            `Found Invalid SE exit for ${event.details.utxo_pos}. Challenge coming up.`
-          );
-          const challengeData = await omgcli.getSEChallengeData(
-            event.details.utxo_pos
-          );
-          const receipt = await omgcli.challengeSE(challengeData);
-
-          processedEvents.push(event.details.utxo_pos);
-
-          console.log(`Challenge SE successful`);
-          Util.printExplorerLinks(receipt, config);
-          console.log("---");
-        }
-      }
-      sleep.sleep(60);
-    }
   } else if (options["parallelRuns"] && options["iterations"]) {
     const load = new Load(options["parallelRuns"], options["iterations"]);
     load.run();

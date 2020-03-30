@@ -1,19 +1,12 @@
 import { OMGCLI } from "../src/omgcli";
+import { TestHelper } from "../src/test_helper";
 const { transaction } = require("@omisego/omg-js-util/src");
 const config = require("../config.js");
 
 jest.setTimeout(200000);
 
-const bobTxOptions = {
-  privateKey: config.bob_eth_address_private_key,
-  from: config.bob_eth_address,
-  gas: 6000000,
-  gasPrice: "8000000000"
-};
-
 let omgcli: OMGCLI = new OMGCLI(config);
-
-let processingUTXOPos: number[] = [];
+const testHelder: TestHelper = new TestHelper(omgcli);
 
 /*
  * General functions
@@ -88,7 +81,7 @@ test("Get balance for an address", async () => {
 });
 
 test("Generate tx from utxo", async () => {
-  const utxo = await getUnspentUTXO(
+  const utxo = await testHelder.getUnspentUTXO(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY
   );
@@ -102,7 +95,7 @@ test("Generate tx from utxo", async () => {
 });
 
 test("Send a tx on the plasma chain", async () => {
-  const utxo = await getUnspentUTXO(
+  const utxo = await testHelder.getUnspentUTXO(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY
   );
@@ -119,7 +112,7 @@ test("Send a tx on the plasma chain", async () => {
  * SE functions
  */
 test("Get SE data for an unspent UTXO", async () => {
-  const utxo = await getUnspentUTXO(
+  const utxo = await testHelder.getUnspentUTXO(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY
   );
@@ -131,7 +124,7 @@ test("Get SE data for an unspent UTXO", async () => {
 });
 
 test("Challenge SE for an inactive exit should fail", async () => {
-  const utxo = await getUnspentUTXO(
+  const utxo = await testHelder.getUnspentUTXO(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY
   );
@@ -146,24 +139,3 @@ test("Challenge SE for an inactive exit should fail", async () => {
     );
   }
 });
-/*
- * Helper functions
- */
-async function getUnspentUTXO(owner: String, currency: String) {
-  const ret = await omgcli.getUTXOs(owner);
-
-  for (const utxo of ret) {
-    if (!processingUTXOPos.includes(utxo.utxo_pos)) {
-      processingUTXOPos.push(utxo.utxo_pos);
-      if (currency) {
-        const amount = await omgcli.getFee(currency);
-        if (utxo.currency == currency && utxo.amount > amount) {
-          return utxo;
-        }
-      } else {
-        return utxo;
-      }
-    }
-  }
-  throw "No unspent UTXO found. Aborting test run.";
-}
