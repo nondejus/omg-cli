@@ -33,7 +33,7 @@ test("Start SE for an unspent UTXO", async () => {
     const bot = new Bot(omgcli);
     const result = await bot.run(true);
 
-    expect(result.event_name).toBe("invalid_exit");
+    expect(result[0].event_name).toBe("invalid_exit");
   } else {
     console.log(`Skip test because there are no UTXOs available`);
   }

@@ -168,6 +168,16 @@ export class OMGCLI {
     return await this.childChain.inFlightExitGetData(signedTxn);
   }
 
+  async getTransaction(hash: string) {
+    const tx = await this.childChain.getTransaction(hash);
+    return {
+      inputs: tx.inputs,
+      outputs: tx.outputs,
+      txType: tx.txType,
+      metadata: tx.metadata
+    };
+  }
+
   async getFees() {
     return await this.childChain.getFees();
   }

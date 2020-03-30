@@ -229,6 +229,13 @@ const optionDefinitions = [
           "Challenge an input from an IN-Flight tx. Additionally specify the inputIndex."
       },
       {
+        name: "getChallengeIFEOutputSpentData",
+        type: String,
+        typeLabel: "{underline string}",
+        description:
+          "Get IFEOutputSpent challenge data. Additionally specify the outputIndex."
+      },
+      {
         name: "challengeIFEOutputSpent",
         type: String,
         typeLabel: "{underline string}",

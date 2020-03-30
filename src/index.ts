@@ -184,7 +184,7 @@ async function run() {
     Util.printExplorerLinks(txReceipt, config);
   } else if (options["getChallengeIFEOutputSpentData"]) {
     const challengeData = await omgcli.getChallengeIFEOutputSpentData(
-      options["challengeIFEOutputSpentData"],
+      options["getChallengeIFEOutputSpentData"],
       Number(options["outputIndex"])
     );
     Util.printObject(challengeData);

@@ -2,39 +2,55 @@
 import { OMGCLI } from "./omgcli";
 // eslint-disable-next-line no-unused-vars
 import { ChallengeSuccess } from "./interface";
+import { Util } from "./util";
 
 const sleep = require("sleep");
 
 export class Bot {
   omgcli: OMGCLI;
-  processedEvents: string[];
 
   constructor(_omgli: OMGCLI) {
     this.omgcli = _omgli;
-    this.processedEvents = [];
   }
 
-  async challenge(status: any): Promise<ChallengeSuccess | undefined> {
+  async challenge(status: any): Promise<ChallengeSuccess[]> {
+    let rets = [];
     for (const event of status["byzantine_events"]) {
-      if (
-        event.event === "invalid_exit" &&
-        !this.processedEvents.includes(event.details.utxo_pos)
-      ) {
+      if (event.event === "invalid_exit") {
         const challengeData = await this.omgcli.getSEChallengeData(
           event.details.utxo_pos
         );
         const receipt = await this.omgcli.challengeSE(challengeData);
 
-        this.processedEvents.push(event.details.utxo_pos.toString());
         const ret: ChallengeSuccess = {
           utxo_pos: event.details.utxo_pos,
           event_name: "invalid_exit",
           tx_hash: receipt.transactionHash
         };
 
-        return ret;
+        rets.push(ret);
+      } else if (event.event === "invalid_piggyback") {
+        if (event.details.outputs.length) {
+          for (const outputIndex of event.details.outputs) {
+            const outputSpentData = await this.omgcli.getChallengeIFEOutputSpentData(
+              event.details.txbytes,
+              outputIndex
+            );
+            const receipt = await this.omgcli.challengeIFEOutputSpent(
+              outputSpentData
+            );
+
+            const ret: ChallengeSuccess = {
+              utxo_pos: 0,
+              event_name: "invalid_piggyback",
+              tx_hash: receipt.transactionHash
+            };
+            rets.push(ret);
+          }
+        }
       }
     }
+    return rets;
   }
 
   async run(returnOnSuccess: boolean) {
@@ -42,12 +58,14 @@ export class Bot {
     while (true) {
       const status = await this.omgcli.getStatus();
       const result = await this.challenge(status);
-      if (result) {
+      if (result.length) {
         if (returnOnSuccess) {
           return result;
         } else {
-          console.log(`Challenge successful`);
-          console.log(result);
+          for (let x = 1; x <= result.length; x++) {
+            console.log(`${x}. Challenge successful`);
+            Util.printObject(result[x - 1]);
+          }
         }
       }
 
