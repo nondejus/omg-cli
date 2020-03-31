@@ -172,7 +172,7 @@ test("Start SE for an unspent UTXO", async () => {
   expect(receiptSE.transactionHash.length).toBeGreaterThan(0);
 });
 
-test.only("Challenge SE for an inactive exit should fail", async () => {
+test("Challenge SE for an inactive exit should fail", async () => {
   const utxo = await getUnspentUTXO(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY
