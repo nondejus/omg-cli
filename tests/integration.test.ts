@@ -138,16 +138,16 @@ test("Challenge SE for an inactive exit should fail", async () => {
       )
     );
   }
+});
 
-  /*
-   * IFE functions
-   */
-  test("Get IFE data for an unspent UTXO", async () => {
-    const utxo = await testHelder.getUnspentUTXO(
-      omgcli.txOptions.from,
-      transaction.ETH_CURRENCY
-    );
-    const IFEData = await omgcli.getIFEData(utxo.utxo_pos);
-    console.log(IFEData);
-  });
+/*
+ * IFE functions
+ */
+test("Get IFE data for an unspent UTXO", async () => {
+  const utxo = await testHelder.getUnspentUTXO(
+    omgcli.txOptions.from,
+    transaction.ETH_CURRENCY
+  );
+  const IFEData = await omgcli.getIFEData(utxo.utxo_pos);
+  console.log(IFEData);
 });
