@@ -63,7 +63,7 @@ export class Bot {
           return result;
         } else {
           for (let x = 1; x <= result.length; x++) {
-            console.log(`${x}. Challenge successful`);
+            console.log(`${x}. challenge successful`);
             Util.printObject(result[x - 1]);
           }
         }
