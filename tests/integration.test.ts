@@ -1,22 +1,12 @@
 import { OMGCLI } from "../src/omgcli";
+import { TestHelper } from "../src/test_helper";
 const { transaction } = require("@omisego/omg-js-util/src");
 const config = require("../config.js");
 
 jest.setTimeout(200000);
 
-const bobTxOptions = {
-  privateKey: config.bob_eth_address_private_key,
-  from: config.bob_eth_address,
-  gas: 6000000,
-  gasPrice: "8000000000"
-};
-
-let omgcli: OMGCLI;
-let processingUTXOPos: number[] = [];
-
-beforeEach(() => {
-  omgcli = new OMGCLI(config);
-});
+let omgcli: OMGCLI = new OMGCLI(config);
+const testHelper: TestHelper = new TestHelper(omgcli);
 
 /*
  * General functions
@@ -48,30 +38,15 @@ test("Get fees", async () => {
 });
 
 test("Process exits for ETH", async () => {
-  try {
-    await omgcli.addToken(transaction.ETH_CURRENCY);
-  } catch (err) {
-    console.log(
-      `Adding the ETH token failed. Likely this is because it has been added already.`
+  const queue = await omgcli.getExitQueue(transaction.ETH_CURRENCY);
+
+  if (queue.length) {
+    const receiptProcessExits = await omgcli.processExits(
+      transaction.ETH_CURRENCY
     );
-  }
-
-  let receiptProcessExits;
-  let error;
-  try {
-    omgcli.txOptions = bobTxOptions;
-
-    receiptProcessExits = await omgcli.processExits(transaction.ETH_CURRENCY);
-  } catch (err) {
-    error = err;
-  }
-
-  if (error) {
-    expect(error.toString()).toContain(
-      "Transaction has been reverted by the EVM"
-    );
-  } else {
     expect(receiptProcessExits.transactionHash.length).toBeGreaterThan(0);
+  } else {
+    console.log(`Skipping test as the queue is empty`);
   }
 });
 
@@ -106,7 +81,7 @@ test("Get balance for an address", async () => {
 });
 
 test("Generate tx from utxo", async () => {
-  const utxo = await getUnspentUTXO(
+  const utxo = await testHelper.getUnspentUTXO(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY
   );
@@ -120,7 +95,7 @@ test("Generate tx from utxo", async () => {
 });
 
 test("Send a tx on the plasma chain", async () => {
-  const utxo = await getUnspentUTXO(
+  const utxo = await testHelper.getUnspentUTXO(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY
   );
@@ -133,22 +108,11 @@ test("Send a tx on the plasma chain", async () => {
   expect(receiptTx).toHaveProperty("txindex");
 });
 
-test("Send a typed tx on the plasma chain", async () => {
-  const receiptTx = await omgcli.sendTypedTx(
-    omgcli.txOptions.from,
-    transaction.ETH_CURRENCY,
-    1
-  );
-  expect(receiptTx).toHaveProperty("blknum");
-  expect(receiptTx).toHaveProperty("txhash");
-  expect(receiptTx).toHaveProperty("txindex");
-});
-
 /*
  * SE functions
  */
 test("Get SE data for an unspent UTXO", async () => {
-  const utxo = await getUnspentUTXO(
+  const utxo = await testHelper.getUnspentUTXO(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY
   );
@@ -159,21 +123,8 @@ test("Get SE data for an unspent UTXO", async () => {
   expect(SEData).toHaveProperty("utxo_pos");
 });
 
-test("Start SE for an unspent UTXO", async () => {
-  const utxo = await getUnspentUTXO(
-    omgcli.txOptions.from,
-    transaction.ETH_CURRENCY
-  );
-
-  const SEData = await omgcli.getSEData(utxo.utxo_pos);
-
-  const receiptSE = await omgcli.startSE(SEData);
-
-  expect(receiptSE.transactionHash.length).toBeGreaterThan(0);
-});
-
 test("Challenge SE for an inactive exit should fail", async () => {
-  const utxo = await getUnspentUTXO(
+  const utxo = await testHelder.getUnspentUTXO(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY
   );
@@ -188,23 +139,3 @@ test("Challenge SE for an inactive exit should fail", async () => {
     );
   }
 });
-/*
- * Helper functions
- */
-async function getUnspentUTXO(owner: String, currency: String) {
-  const ret = await omgcli.getUTXOs(owner);
-
-  for (const utxo of ret) {
-    if (!processingUTXOPos.includes(utxo.utxo_pos)) {
-      processingUTXOPos.push(utxo.utxo_pos);
-      if (currency) {
-        if (utxo.currency == currency) {
-          return utxo;
-        }
-      } else {
-        return utxo;
-      }
-    }
-  }
-  throw "No unspent UTXO found. Aborting test run.";
-}

@@ -33,7 +33,7 @@ export class OMGCLI {
       privateKey: config.alice_eth_address_private_key,
       from: config.alice_eth_address,
       gas: 6000000,
-      gasPrice: "8000000000"
+      gasPrice: "10000000000"
     };
   }
 
@@ -63,8 +63,19 @@ export class OMGCLI {
     };
   }
 
-  async getUTXOs(address: String) {
-    return await this.childChain.getUtxos(address);
+  async getUTXOs(address: String, currency?: String) {
+    const utxos = await this.childChain.getUtxos(address);
+    if (currency) {
+      let filteredUTXOS = [];
+      for (const utxo of utxos) {
+        if (utxo.currency === currency) {
+          filteredUTXOS.push(utxo);
+        }
+      }
+      return filteredUTXOS;
+    } else {
+      return utxos;
+    }
   }
 
   async getUTXO(address: String, utxoPos: Number) {
