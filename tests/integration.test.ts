@@ -146,8 +146,16 @@ test("Challenge SE for an inactive exit should fail", async () => {
 test("Get IFE data for an unspent UTXO", async () => {
   const utxo = await testHelder.getUnspentUTXO(
     omgcli.txOptions.from,
-    transaction.ETH_CURRENCY
+    transaction.ETH_CURRENCY,
+    true
   );
-  const IFEData = await omgcli.getIFEData(utxo.utxo_pos);
-  console.log(IFEData);
+
+  console.log(utxo);
+  const tx = await omgcli.getTransaction(utxo.creating_txhash);
+  const IFEData = await omgcli.getIFEData(tx);
+  expect(IFEData).toHaveProperty("in_flight_tx");
+  expect(IFEData).toHaveProperty("in_flight_tx_sigs");
+  expect(IFEData).toHaveProperty("input_txs");
+  expect(IFEData).toHaveProperty("input_txs_inclusion_proofs");
+  expect(IFEData).toHaveProperty("input_utxos_pos");
 });

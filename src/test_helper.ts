@@ -10,19 +10,25 @@ export class TestHelper {
     this.processingUTXOPos = [];
   }
 
-  async getUnspentUTXO(owner: String, currency: String) {
+  async getUnspentUTXO(
+    owner: String,
+    currency: String,
+    onlyPlasmaTx: Boolean = false
+  ) {
     const ret = await this.omgcli.getUTXOs(owner);
     const amount = await this.omgcli.getFee(currency);
 
     for (const utxo of ret) {
       if (!this.processingUTXOPos.includes(utxo.utxo_pos)) {
-        this.processingUTXOPos.push(utxo.utxo_pos);
-        if (currency) {
-          if (utxo.currency == currency && utxo.amount > amount) {
+        if ((onlyPlasmaTx && utxo.creating_txhash !== null) || !onlyPlasmaTx) {
+          this.processingUTXOPos.push(utxo.utxo_pos);
+          if (currency) {
+            if (utxo.currency == currency && utxo.amount > amount) {
+              return utxo;
+            }
+          } else {
             return utxo;
           }
-        } else {
-          return utxo;
         }
       }
     }
