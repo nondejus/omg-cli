@@ -32,6 +32,7 @@ async function run() {
 
   if (options["decode"]) {
     const decodedTx = omgcli.decode(options["decode"]);
+    console.log(omgcli.web3.utils.keccak256(options["decode"]));
     Util.printObject(decodedTx, "");
   } else if (options["getUTXOs"]) {
     const utxos = await omgcli.getUTXOs(options["getUTXOs"]);
@@ -108,6 +109,9 @@ async function run() {
     );
 
     Util.printObject(newTx);
+  } else if (options["getTxDetails"]) {
+    const response = await omgcli.getTxDetails(options["getTxDetails"]);
+    Util.printObject(response);
   } else if (options["sendTx"]) {
     const txRaw = fs.readFileSync(options["sendTx"]);
     const tx = JSON.parse(txRaw);

@@ -21,11 +21,11 @@ export class OMGCLI {
 
     this.childChain = new ChildChain({
       watcherUrl: config.watcher_url,
-      watcherProxyUrl: config.watcher_proxy_url
+      watcherProxyUrl: config.watcher_proxy_url,
     });
     this.rootChain = new RootChain({
       web3,
-      plasmaContractAddress: config.plasmaframework_contract_address
+      plasmaContractAddress: config.plasmaframework_contract_address,
     });
     this.web3 = web3;
 
@@ -33,7 +33,7 @@ export class OMGCLI {
       privateKey: config.alice_eth_address_private_key,
       from: config.alice_eth_address,
       gas: 6000000,
-      gasPrice: "10000000000"
+      gasPrice: "10000000000",
     };
   }
 
@@ -59,7 +59,7 @@ export class OMGCLI {
 
     return {
       tx: transaction.encode(tx),
-      signedTx: signedTx
+      signedTx: signedTx,
     };
   }
 
@@ -106,7 +106,7 @@ export class OMGCLI {
 
   async getIFEId(tx: any) {
     return await this.rootChain.getInFlightExitId({
-      txBytes: tx
+      txBytes: tx,
     });
   }
 
@@ -121,7 +121,7 @@ export class OMGCLI {
       utxoPos: exitData.utxo_pos,
       outputTx: exitData.txbytes,
       inclusionProof: exitData.proof,
-      txOptions: this.txOptions
+      txOptions: this.txOptions,
     });
   }
 
@@ -136,7 +136,7 @@ export class OMGCLI {
       challengeTx: challengeData.txbytes,
       inputIndex: challengeData.input_index,
       challengeTxSig: challengeData.sig,
-      txOptions: this.txOptions
+      txOptions: this.txOptions,
     });
   }
 
@@ -147,7 +147,7 @@ export class OMGCLI {
       inputUtxosPos: exitData.input_utxos_pos,
       inputTxsInclusionProofs: exitData.input_txs_inclusion_proofs,
       inFlightTxSigs: exitData.in_flight_tx_sigs,
-      txOptions: this.txOptions
+      txOptions: this.txOptions,
     });
   }
 
@@ -174,7 +174,7 @@ export class OMGCLI {
       inputs: tx.inputs,
       outputs: tx.outputs,
       txType: tx.txType,
-      metadata: tx.metadata
+      metadata: tx.metadata,
     };
   }
 
@@ -211,7 +211,7 @@ export class OMGCLI {
           approvalReceipt = await this.rootChain.approveToken({
             erc20Address: this.config.erc20_contract,
             amount: this.config.alice_erc20_deposit_amount,
-            txOptions: this.txOptions
+            txOptions: this.txOptions,
           });
         }
 
@@ -220,12 +220,12 @@ export class OMGCLI {
           to: address,
           ...(isEth ? { value: amount } : {}),
           data: txUtils.getTxData(this.web3, contract, "deposit", encodedTx),
-          gas: this.txOptions.gas
+          gas: this.txOptions.gas,
         };
         depositReceipt = await txUtils.sendTx({
           web3: this.web3,
           txDetails,
-          privateKey: this.txOptions.privateKey
+          privateKey: this.txOptions.privateKey,
         });
       } else if (asset == transaction.ETH_CURRENCY) {
         if (!amount) {
@@ -236,7 +236,7 @@ export class OMGCLI {
         depositReceipt = await this.rootChain.deposit({
           amount: amount,
           currency: asset,
-          txOptions: this.txOptions
+          txOptions: this.txOptions,
         });
       } else {
         if (!amount) {
@@ -246,19 +246,19 @@ export class OMGCLI {
         approvalReceipt = await this.rootChain.approveToken({
           erc20Address: asset,
           amount: new BigNumber(amount),
-          txOptions: this.txOptions
+          txOptions: this.txOptions,
         });
 
         depositReceipt = await this.rootChain.deposit({
           amount: new BigNumber(amount),
           currency: asset,
-          txOptions: this.txOptions
+          txOptions: this.txOptions,
         });
       }
     }
     return {
       approvalReceipt: approvalReceipt,
-      depositReceipt: depositReceipt
+      depositReceipt: depositReceipt,
     };
   }
 
@@ -266,7 +266,7 @@ export class OMGCLI {
     return await this.rootChain.piggybackInFlightExitOnInput({
       inFlightTx: tx,
       inputIndex: inputIndex,
-      txOptions: this.txOptions
+      txOptions: this.txOptions,
     });
   }
 
@@ -274,7 +274,7 @@ export class OMGCLI {
     return await this.rootChain.piggybackInFlightExitOnOutput({
       inFlightTx: tx,
       outputIndex: outputIndex,
-      txOptions: this.txOptions
+      txOptions: this.txOptions,
     });
   }
 
@@ -293,7 +293,7 @@ export class OMGCLI {
       challengingTx: challengeData.spending_txbytes,
       challengingTxInputIndex: challengeData.spending_input_index,
       challengingTxWitness: challengeData.spending_sig,
-      txOptions: this.txOptions
+      txOptions: this.txOptions,
     });
   }
 
@@ -313,7 +313,7 @@ export class OMGCLI {
       challengingTxWitness: challengeData.spending_sig,
       inputTx: challengeData.input_tx,
       inputUtxoPos: challengeData.input_utxo_pos,
-      txOptions: this.txOptions
+      txOptions: this.txOptions,
     });
   }
 
@@ -328,7 +328,7 @@ export class OMGCLI {
       competingTxPos: competitor.competing_tx_pos,
       competingTxInclusionProof: competitor.competing_proof,
       competingTxWitness: competitor.competing_sig,
-      txOptions: this.txOptions
+      txOptions: this.txOptions,
     });
   }
 
@@ -339,7 +339,7 @@ export class OMGCLI {
   async deleteNonPiggybackedIFE(exitId: String) {
     return await this.rootChain.deleteNonPiggybackedInFlightExit({
       exitId,
-      txOptions: this.txOptions
+      txOptions: this.txOptions,
     });
   }
 
@@ -389,18 +389,18 @@ export class OMGCLI {
       {
         owner: owner,
         currency: currency,
-        amount: amount
-      }
+        amount: amount,
+      },
     ];
 
     const fee = {
-      currency: transaction.ETH_CURRENCY
+      currency: transaction.ETH_CURRENCY,
     };
 
     const createdTx = await this.childChain.createTransaction({
       owner: owner,
       payments,
-      fee
+      fee,
     });
 
     const txTypedData = this.childChain.signTypedData(
@@ -433,7 +433,7 @@ export class OMGCLI {
         inputs,
         outputs,
         metadata:
-          "0x0000000000000000000000000000000000000000000000000000000000001337"
+          "0x0000000000000000000000000000000000000000000000000000000000001337",
       };
       const newTx = await this.addFeesToTx(tx);
       if (newTx) {
@@ -447,19 +447,23 @@ export class OMGCLI {
     }
   }
 
+  async getTxDetails(hash: string) {
+    return await this.childChain.getTransaction(hash);
+  }
+
   async processExits(asset: String) {
     return await this.rootChain.processExits({
       token: asset,
       exitId: 0,
       maxExitsToProcess: 20,
-      txOptions: this.txOptions
+      txOptions: this.txOptions,
     });
   }
 
   async addToken(asset: String) {
     return await this.rootChain.addToken({
       token: asset,
-      txOptions: this.txOptions
+      txOptions: this.txOptions,
     });
   }
 
@@ -468,7 +472,7 @@ export class OMGCLI {
       inFlightTx: proof.in_flight_txbytes,
       inFlightTxPos: proof.in_flight_tx_pos,
       inFlightTxInclusionProof: proof.in_flight_proof,
-      txOptions: this.txOptions
+      txOptions: this.txOptions,
     });
   }
   async getProveIFECanonical(tx: String) {

@@ -7,7 +7,7 @@ export class TestHelper {
 
   constructor(_omgli: OMGCLI) {
     this.omgcli = _omgli;
-    this.processingUTXOPos = [];
+    this.processingUTXOPos = ["70000000000000"];
   }
 
   async getUnspentUTXO(
@@ -19,7 +19,8 @@ export class TestHelper {
     const amount = await this.omgcli.getFee(currency);
 
     for (const utxo of ret) {
-      if (!this.processingUTXOPos.includes(utxo.utxo_pos)) {
+      if (!this.processingUTXOPos.includes(utxo.utxo_pos.toString())) {
+        console.log(utxo.utxo_pos);
         if ((onlyPlasmaTx && utxo.creating_txhash !== null) || !onlyPlasmaTx) {
           this.processingUTXOPos.push(utxo.utxo_pos);
           if (currency) {
