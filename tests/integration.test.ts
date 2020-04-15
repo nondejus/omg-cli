@@ -68,6 +68,20 @@ test("Get UTXOs for an address", async () => {
   }
 });
 
+test("Get exitable UTXOs for an address", async () => {
+  const response = await omgcli.getExitableUTXOs(config.alice_eth_address);
+
+  if (response.length) {
+    const utxo = response[0];
+    expect(utxo).toHaveProperty("amount");
+    expect(utxo).toHaveProperty("currency");
+    expect(utxo).toHaveProperty("oindex");
+    expect(utxo).toHaveProperty("txindex");
+    expect(utxo).toHaveProperty("utxo_pos");
+    expect(utxo).toHaveProperty("owner");
+  }
+});
+
 test("Get balance for an address", async () => {
   const response = await omgcli.getBalance(config.alice_eth_address);
 
@@ -95,7 +109,7 @@ test("Generate tx from utxo", async () => {
 });
 
 test("Send a tx on the plasma chain", async () => {
-  const utxo = await testHelder.getUnspentUTXO(
+  const utxo = await testHelder.getExitableUnspentUTXO(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY
   );
@@ -150,7 +164,6 @@ test("Get IFE data for an unspent UTXO", async () => {
     true
   );
 
-  console.log(utxo);
   const tx = await omgcli.getTransaction(utxo.creating_txhash);
   const IFEData = await omgcli.getIFEData(tx);
   expect(IFEData).toHaveProperty("in_flight_tx");

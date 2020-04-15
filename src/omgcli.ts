@@ -2,13 +2,14 @@ const { transaction } = require("@omisego/omg-js-util/src");
 const ChildChain = require("@omisego/omg-js-childchain/src/childchain");
 const RootChain = require("@omisego/omg-js-rootchain/src/rootchain");
 const txUtils = require("@omisego/omg-js-rootchain/src/txUtils");
+const rpcAPI = require("@omisego/omg-js-childchain/src/rpc/rpcApi");
 
 const fs = require("fs");
 const BigNumber = require("bn.js");
 const Web3 = require("web3");
 
 export class OMGCLI {
-  childChain: any;
+  watcherInfo: any;
   rootChain: any;
   options: any;
   txOptions: any;
@@ -19,8 +20,8 @@ export class OMGCLI {
     this.config = config;
     let web3 = new Web3(new Web3.providers.HttpProvider(config.eth_node));
 
-    this.childChain = new ChildChain({
-      watcherUrl: config.watcher_url,
+    this.watcherInfo = new ChildChain({
+      watcherUrl: config.watcher_info_url,
       watcherProxyUrl: config.watcher_proxy_url,
     });
     this.rootChain = new RootChain({
@@ -50,9 +51,9 @@ export class OMGCLI {
     );
 
     const privateKeys = [this.txOptions.privateKey];
-    const signatures = this.childChain.signTransaction(typedData, privateKeys);
+    const signatures = this.watcherInfo.signTransaction(typedData, privateKeys);
 
-    const signedTx = this.childChain.buildSignedTransaction(
+    const signedTx = this.watcherInfo.buildSignedTransaction(
       typedData,
       signatures
     );
@@ -64,7 +65,7 @@ export class OMGCLI {
   }
 
   async getUTXOs(address: String, currency?: String) {
-    const utxos = await this.childChain.getUtxos(address);
+    const utxos = await this.watcherInfo.getUtxos(address);
     if (currency) {
       let filteredUTXOS = [];
       for (const utxo of utxos) {
@@ -79,12 +80,31 @@ export class OMGCLI {
   }
 
   async getUTXO(address: String, utxoPos: Number) {
-    const utxos = await this.childChain.getUtxos(address);
+    const utxos = await this.watcherInfo.getUtxos(address);
 
     for (const utxo of utxos) {
       if (utxo.utxo_pos == utxoPos) {
         return utxo;
       }
+    }
+  }
+
+  async getExitableUTXOs(address: String, currency?: String) {
+    const utxos = await rpcAPI.post({
+      url: `${this.config.watcher_security_url}/account.get_exitable_utxos`,
+      body: { address: address },
+      proxyUrl: this.config.watcher_proxy_url,
+    });
+    if (currency) {
+      let filteredUTXOS = [];
+      for (const utxo of utxos) {
+        if (utxo.currency === currency) {
+          filteredUTXOS.push(utxo);
+        }
+      }
+      return filteredUTXOS;
+    } else {
+      return utxos;
     }
   }
 
@@ -97,11 +117,11 @@ export class OMGCLI {
   }
 
   async getBalance(address: String) {
-    return await this.childChain.getBalance(address);
+    return await this.watcherInfo.getBalance(address);
   }
 
   async getStatus() {
-    return await this.childChain.status();
+    return await this.watcherInfo.status();
   }
 
   async getIFEId(tx: any) {
@@ -112,7 +132,7 @@ export class OMGCLI {
 
   async getSEData(utxoPos: Number) {
     const utxo = transaction.decodeUtxoPos(utxoPos);
-    const exitData = await this.childChain.getExitData(utxo);
+    const exitData = await this.watcherInfo.getExitData(utxo);
     return exitData;
   }
 
@@ -126,7 +146,7 @@ export class OMGCLI {
   }
 
   async getSEChallengeData(utxoPos: Number) {
-    return await this.childChain.getChallengeData(utxoPos);
+    return await this.watcherInfo.getChallengeData(utxoPos);
   }
 
   async challengeSE(challengeData: any) {
@@ -159,17 +179,17 @@ export class OMGCLI {
 
     const privateKeys = [this.txOptions.privateKey];
 
-    const signatures = this.childChain.signTransaction(typedData, privateKeys);
-    const signedTxn = this.childChain.buildSignedTransaction(
+    const signatures = this.watcherInfo.signTransaction(typedData, privateKeys);
+    const signedTxn = this.watcherInfo.buildSignedTransaction(
       typedData,
       signatures
     );
 
-    return await this.childChain.inFlightExitGetData(signedTxn);
+    return await this.watcherInfo.inFlightExitGetData(signedTxn);
   }
 
   async getTransaction(hash: string) {
-    const tx = await this.childChain.getTransaction(hash);
+    const tx = await this.watcherInfo.getTransaction(hash);
     return {
       inputs: tx.inputs,
       outputs: tx.outputs,
@@ -179,7 +199,7 @@ export class OMGCLI {
   }
 
   async getFees() {
-    return await this.childChain.getFees();
+    return await this.watcherInfo.getFees();
   }
 
   async getFee(currency: any) {
@@ -279,7 +299,7 @@ export class OMGCLI {
   }
 
   async getChallengeIFEOutputSpentData(tx: any, outputIndex: Number) {
-    return await this.childChain.inFlightExitGetOutputChallengeData(
+    return await this.watcherInfo.inFlightExitGetOutputChallengeData(
       tx,
       outputIndex
     );
@@ -298,7 +318,7 @@ export class OMGCLI {
   }
 
   async getChallengeIFEInputSpentData(tx: any, inputIndex: Number) {
-    return await this.childChain.inFlightExitGetInputChallengeData(
+    return await this.watcherInfo.inFlightExitGetInputChallengeData(
       tx,
       inputIndex
     );
@@ -333,7 +353,7 @@ export class OMGCLI {
   }
 
   async getChallengeDataIFENotCanonical(tx: any) {
-    return await this.childChain.inFlightExitGetCompetitor(tx);
+    return await this.watcherInfo.inFlightExitGetCompetitor(tx);
   }
 
   async deleteNonPiggybackedIFE(exitId: String) {
@@ -374,14 +394,14 @@ export class OMGCLI {
       privateKeys.push(this.txOptions.privateKey);
     }
 
-    const signatures = this.childChain.signTransaction(typedData, privateKeys);
+    const signatures = this.watcherInfo.signTransaction(typedData, privateKeys);
 
-    const signedTxn = this.childChain.buildSignedTransaction(
+    const signedTxn = this.watcherInfo.buildSignedTransaction(
       typedData,
       signatures
     );
 
-    return await this.childChain.submitTransaction(signedTxn);
+    return await this.watcherInfo.submitTransaction(signedTxn);
   }
 
   async sendTypedTx(owner: String, currency: String, amount: number) {
@@ -397,17 +417,17 @@ export class OMGCLI {
       currency: transaction.ETH_CURRENCY,
     };
 
-    const createdTx = await this.childChain.createTransaction({
+    const createdTx = await this.watcherInfo.createTransaction({
       owner: owner,
       payments,
       fee,
     });
 
-    const txTypedData = this.childChain.signTypedData(
+    const txTypedData = this.watcherInfo.signTypedData(
       createdTx.transactions[0],
       [this.txOptions.privateKey]
     );
-    return await this.childChain.submitTyped(txTypedData);
+    return await this.watcherInfo.submitTyped(txTypedData);
   }
 
   /*
@@ -448,7 +468,7 @@ export class OMGCLI {
   }
 
   async getTxDetails(hash: string) {
-    return await this.childChain.getTransaction(hash);
+    return await this.watcherInfo.getTransaction(hash);
   }
 
   async processExits(asset: String) {
@@ -476,6 +496,6 @@ export class OMGCLI {
     });
   }
   async getProveIFECanonical(tx: String) {
-    return await this.childChain.inFlightExitProveCanonical(tx);
+    return await this.watcherInfo.inFlightExitProveCanonical(tx);
   }
 }

@@ -25,16 +25,18 @@ export class Load {
       {
         name: "ETH",
         address: ethAddress,
-        amount: new BigNumber(await this.omgcli.getFee(ethAddress))
+        amount: new BigNumber(await this.omgcli.getFee(ethAddress)),
       },
       {
         name: "FEE",
         address: feeAddress,
-        amount: new BigNumber(await this.omgcli.getFee(feeAddress))
-      }
+        amount: new BigNumber(await this.omgcli.getFee(feeAddress)),
+      },
     ];
     while (this.iterations > 0) {
-      utxos = await this.omgcli.childChain.getUtxos(config.charlie_eth_address);
+      utxos = await this.omgcli.watcherInfo.getUtxos(
+        config.charlie_eth_address
+      );
 
       async.eachLimit(
         utxos,
@@ -81,7 +83,7 @@ export class Load {
                   inputs,
                   outputs,
                   metadata:
-                    "0x0000000000000000000000000000000000000000000000000000000000001337"
+                    "0x0000000000000000000000000000000000000000000000000000000000001337",
                 };
 
                 await this.omgcli.sendTx(tx);

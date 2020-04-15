@@ -3,7 +3,8 @@ require("dotenv").config();
 
 const config = {
   eth_node: process.env.ETH_NODE,
-  watcher_url: process.env.WATCHER_URL,
+  watcher_info_url: process.env.WATCHER_INFO_URL,
+  watcher_security_url: process.env.WATCHER_SECURITY_URL,
   watcher_proxy_url: process.env.WATCHER_PROXY_URL,
   plasmaframework_contract_address:
     process.env.PLASMAFRAMEWORK_CONTRACT_ADDRESS,
@@ -24,7 +25,7 @@ const config = {
   alice_erc20_transfer_amount: process.env.ALICE_ERC20_TRANSFER_AMOUNT || "5",
   millis_to_wait_for_next_block:
     process.env.MILLIS_TO_WAIT_FOR_NEXT_BLOCK || 1000,
-  blocks_to_wait_for_txn: process.env.BLOCKS_TO_WAIT_FOR_TXN || 20
+  blocks_to_wait_for_txn: process.env.BLOCKS_TO_WAIT_FOR_TXN || 20,
 };
 
 module.exports = config;
