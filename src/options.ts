@@ -113,6 +113,12 @@ const optionDefinitions = [
         description: "Generate a tx including fees from UTXO",
       },
       {
+        name: "generateTxHash",
+        type: String,
+        typeLabel: "{underline string}",
+        description: "Generate the tx hash from an RLP encoded tx",
+      },
+      {
         name: "getTxDetails",
         type: String,
         typeLabel: "{underline string}",
