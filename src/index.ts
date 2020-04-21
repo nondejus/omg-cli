@@ -9,6 +9,7 @@ const config = require("../config.js");
 import { OMGCLI } from "./omgcli";
 import { Util } from "./util";
 import { Load } from "./load";
+import { Bot } from "./bot";
 
 let optionsLists: object[] = [];
 
@@ -216,7 +217,8 @@ async function run() {
     Util.printExplorerLinks(txReceipt, config);
   } else if (options["autoChallenge"]) {
     console.log("---> Watching for Byzantine events <---");
-    // let processedEvents: String[] = [];
+    const bot = new Bot(omgcli);
+    await bot.run(false);
     // eslint-disable-next-line no-constant-condition
   } else if (options["parallelRuns"] && options["iterations"]) {
     const load = new Load(options["parallelRuns"], options["iterations"]);

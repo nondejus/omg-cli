@@ -8,15 +8,30 @@ const sleep = require("sleep");
 
 export class Bot {
   omgcli: OMGCLI;
+  challengedEvents: ChallengeSuccess[];
 
   constructor(_omgli: OMGCLI) {
     this.omgcli = _omgli;
+    this.challengedEvents = [];
+  }
+
+  isEventChallenged(utxo_pos: number): boolean {
+    for (const event of this.challengedEvents) {
+      if (event.utxo_pos === utxo_pos) {
+        return true;
+      }
+    }
+    return false;
   }
 
   async challenge(status: any): Promise<ChallengeSuccess[]> {
     let rets = [];
+
     for (const event of status["byzantine_events"]) {
-      if (event.event === "invalid_exit") {
+      if (
+        event.event === "invalid_exit" &&
+        !this.isEventChallenged(Number(event.details.utxo_pos))
+      ) {
         const challengeData = await this.omgcli.getSEChallengeData(
           event.details.utxo_pos
         );
@@ -25,7 +40,7 @@ export class Bot {
         const ret: ChallengeSuccess = {
           utxo_pos: event.details.utxo_pos,
           event_name: "invalid_exit",
-          tx_hash: receipt.transactionHash
+          tx_hash: receipt.transactionHash,
         };
 
         rets.push(ret);
@@ -43,13 +58,16 @@ export class Bot {
             const ret: ChallengeSuccess = {
               utxo_pos: 0,
               event_name: "invalid_piggyback",
-              tx_hash: receipt.transactionHash
+              tx_hash: receipt.transactionHash,
             };
+
             rets.push(ret);
           }
         }
       }
     }
+
+    this.challengedEvents = this.challengedEvents.concat(rets);
     return rets;
   }
 

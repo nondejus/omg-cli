@@ -18,7 +18,8 @@ export class OMGCLI {
 
   constructor(config: any) {
     this.config = config;
-    let web3 = new Web3(new Web3.providers.HttpProvider(config.eth_node));
+
+    const web3 = new Web3(config.eth_node);
 
     this.watcherInfo = new ChildChain({
       watcherUrl: config.watcher_info_url,
@@ -105,6 +106,16 @@ export class OMGCLI {
       return filteredUTXOS;
     } else {
       return utxos;
+    }
+  }
+
+  async getExitableUTXO(address: String, utxoPos: Number) {
+    const utxos = await this.watcherInfo.getExitableUTXOs(address);
+
+    for (const utxo of utxos) {
+      if (utxo.utxo_pos == utxoPos) {
+        return utxo;
+      }
     }
   }
 

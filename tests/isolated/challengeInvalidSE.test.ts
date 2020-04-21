@@ -4,7 +4,7 @@ import { Bot } from "../../src/bot";
 const { transaction } = require("@omisego/omg-js-util/src");
 const config = require("../../config.js");
 
-jest.setTimeout(2000000);
+jest.setTimeout(3000000);
 
 const omgcli: OMGCLI = new OMGCLI(config);
 const testHelder: TestHelper = new TestHelper(omgcli);
@@ -12,7 +12,8 @@ const testHelder: TestHelper = new TestHelper(omgcli);
 test("Start SE for an unspent UTXO", async () => {
   const utxo = await testHelder.getUnspentUTXO(
     omgcli.txOptions.from,
-    transaction.ETH_CURRENCY
+    transaction.ETH_CURRENCY,
+    true
   );
 
   if (utxo) {

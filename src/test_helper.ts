@@ -13,45 +13,39 @@ export class TestHelper {
   async getUnspentUTXO(
     owner: String,
     currency: String,
-    onlyPlasmaTx: Boolean = false
+    plasmaSpendable: Boolean = false
   ) {
-    const ret = await this.omgcli.getUTXOs(owner);
+    const infoUTXOs = await this.omgcli.getUTXOs(owner);
+    const securityUTXOs = await this.omgcli.getExitableUTXOs(owner);
     const amount = await this.omgcli.getFee(currency);
 
-    for (const utxo of ret) {
+    for (const utxo of infoUTXOs) {
       if (!this.processingUTXOPos.includes(utxo.utxo_pos.toString())) {
-        if ((onlyPlasmaTx && utxo.creating_txhash !== null) || !onlyPlasmaTx) {
-          this.processingUTXOPos.push(utxo.utxo_pos);
-          if (currency) {
-            if (utxo.currency == currency && utxo.amount > amount) {
-              return utxo;
+        if (this.utxoExists(securityUTXOs, utxo.utxo_pos))
+          if (plasmaSpendable && utxo.creating_txhash !== null) {
+            if (utxo.currency === currency) {
+              if (utxo.amount > amount) {
+                this.processingUTXOPos.push(utxo.utxo_pos);
+                return utxo;
+              }
             }
           } else {
-            return utxo;
+            if (utxo.currency == currency) {
+              return utxo;
+            }
           }
-        }
       }
     }
     throw "No unspent UTXO found. Aborting test run.";
   }
 
-  async getExitableUnspentUTXO(owner: String, currency: String) {
-    const ret = await this.omgcli.getExitableUTXOs(owner);
-    const amount = await this.omgcli.getFee(currency);
-
-    for (const utxo of ret) {
-      if (!this.processingUTXOPos.includes(utxo.utxo_pos.toString())) {
-        this.processingUTXOPos.push(utxo.utxo_pos);
-        if (currency) {
-          if (utxo.currency == currency && utxo.amount > amount) {
-            return utxo;
-          }
-        } else {
-          return utxo;
-        }
+  utxoExists(utxos: any, utxoPos: Number): boolean {
+    let found: boolean = false;
+    for (const utxo of utxos) {
+      if (Number(utxo.utxo_pos) === utxoPos) {
+        found = true;
       }
     }
-
-    throw "No unspent UTXO found. Aborting test run.";
+    return found;
   }
 }
