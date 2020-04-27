@@ -94,14 +94,19 @@ test("Get balance for an address", async () => {
   }
 });
 
-test("Generate tx from utxo", async () => {
-  const utxo = await testHelder.getUnspentUTXO(
+test("Generate tx from two utxo", async () => {
+  const utxos = await testHelder.getUnspentUTXOs(
     omgcli.txOptions.from,
-    transaction.ETH_CURRENCY
+    transaction.ETH_CURRENCY,
+    true
   );
 
-  const tx = await omgcli.generateTx(omgcli.txOptions.from, utxo.utxo_pos);
-
+  const tx = await omgcli.generateTx(omgcli.txOptions.from, [
+    utxos[0].utxo_pos,
+    utxos[1].utxo_pos,
+  ]);
+  expect(tx.inputs.length).toBe(2);
+  expect(tx.outputs.length).toBe(2);
   expect(tx).toHaveProperty("transactionType");
   expect(tx).toHaveProperty("inputs");
   expect(tx).toHaveProperty("outputs");
@@ -109,14 +114,17 @@ test("Generate tx from utxo", async () => {
 });
 
 test("Send a tx on the plasma chain", async () => {
-  const utxo = await testHelder.getExitableUnspentUTXO(
+  const utxos = await testHelder.getUnspentUTXOs(
     omgcli.txOptions.from,
-    transaction.ETH_CURRENCY
+    transaction.ETH_CURRENCY,
+    true
   );
 
-  const tx = await omgcli.generateTx(omgcli.txOptions.from, utxo.utxo_pos);
+  const tx = await omgcli.generateTx(omgcli.txOptions.from, [
+    utxos[0].utxo_pos,
+  ]);
 
-  const receiptTx = await omgcli.sendTx(tx);
+  const receiptTx = await omgcli.sendDecodedTx(tx);
   expect(receiptTx).toHaveProperty("blknum");
   expect(receiptTx).toHaveProperty("txhash");
   expect(receiptTx).toHaveProperty("txindex");
@@ -126,25 +134,25 @@ test("Send a tx on the plasma chain", async () => {
  * SE functions
  */
 test("Get SE data for an unspent UTXO", async () => {
-  const utxo = await testHelder.getUnspentUTXO(
+  const utxos = await testHelder.getUnspentUTXOs(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY
   );
 
-  const SEData = await omgcli.getSEData(utxo.utxo_pos);
+  const SEData = await omgcli.getSEData(utxos[0].utxo_pos);
   expect(SEData).toHaveProperty("proof");
   expect(SEData).toHaveProperty("txbytes");
   expect(SEData).toHaveProperty("utxo_pos");
 });
 
 test("Challenge SE for an inactive exit should fail", async () => {
-  const utxo = await testHelder.getUnspentUTXO(
+  const utxos = await testHelder.getUnspentUTXOs(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY
   );
 
   try {
-    await omgcli.getSEChallengeData(utxo.utxo_pos);
+    await omgcli.getSEChallengeData(utxos[0].utxo_pos);
   } catch (err) {
     expect(err).toEqual(
       new Error(
@@ -157,14 +165,14 @@ test("Challenge SE for an inactive exit should fail", async () => {
 /*
  * IFE functions
  */
-test("Get IFE data for an unspent UTXO", async () => {
-  const utxo = await testHelder.getUnspentUTXO(
+test.only("Get IFE data for an unspent UTXO", async () => {
+  const utxos = await testHelder.getUnspentUTXOs(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY,
     true
   );
 
-  const tx = await omgcli.getTransaction(utxo.creating_txhash);
+  const tx = await omgcli.getTransaction(utxos[0].creating_txhash);
   const IFEData = await omgcli.getIFEData(tx);
   expect(IFEData).toHaveProperty("in_flight_tx");
   expect(IFEData).toHaveProperty("in_flight_tx_sigs");

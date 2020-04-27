@@ -86,7 +86,7 @@ export class Load {
                     "0x0000000000000000000000000000000000000000000000000000000000001337",
                 };
 
-                await this.omgcli.sendTx(tx);
+                await this.omgcli.sendDecodedTx(tx);
 
                 //console.log(txReceipt);
               }

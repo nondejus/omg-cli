@@ -183,6 +183,7 @@ export class OMGCLI {
   }
 
   async getIFEData(tx: any) {
+    /*
     const typedData = transaction.getTypedData(
       tx,
       this.config.plasmaframework_contract_address
@@ -194,8 +195,9 @@ export class OMGCLI {
     const signedTxn = this.watcherInfo.buildSignedTransaction(
       typedData,
       signatures
-    );
+    );*/
 
+    const signedTxn = await this.signDecodedTx(tx);
     return await this.watcherInfo.inFlightExitGetData(signedTxn);
   }
 
@@ -393,26 +395,33 @@ export class OMGCLI {
     }
   }
 
-  async sendTx(tx: any) {
+  async sendDecodedTx(decodedTx: any) {
+    const signedTxn = await this.signDecodedTx(decodedTx);
+    return await this.watcherInfo.submitTransaction(signedTxn);
+  }
+
+  async sendEncodedTx(encodedTx: string) {
+    return await this.watcherInfo.submitTransaction(encodedTx);
+  }
+
+  async signDecodedTx(decodedTx: any) {
     const typedData = transaction.getTypedData(
-      tx,
+      decodedTx,
       this.config.plasmaframework_contract_address
     );
 
     let privateKeys: string[] = [];
 
-    for (let i = 0; i < tx.inputs.length; i++) {
+    for (let i = 0; i < decodedTx.inputs.length; i++) {
       privateKeys.push(this.txOptions.privateKey);
     }
 
+    return await this.signTypedData(typedData, privateKeys);
+  }
+
+  async signTypedData(typedData: any, privateKeys: string[]) {
     const signatures = this.watcherInfo.signTransaction(typedData, privateKeys);
-
-    const signedTxn = this.watcherInfo.buildSignedTransaction(
-      typedData,
-      signatures
-    );
-
-    return await this.watcherInfo.submitTransaction(signedTxn);
+    return this.watcherInfo.buildSignedTransaction(typedData, signatures);
   }
 
   async sendTypedTx(owner: String, currency: String, amount: number) {
@@ -444,21 +453,30 @@ export class OMGCLI {
   /*
    * utxo_pos needs to be fee enabled and have enough balance to pay the fees
    */
-  async generateTx(from: String, utxo_pos: number) {
-    const utxo = await this.getUTXO(from, utxo_pos);
+  async generateTx(from: String, utxoPositions: number[]) {
+    let utxos: any[] = [];
+    for (const utxoPosition of utxoPositions) {
+      const utxo = await this.getUTXO(from, utxoPosition);
+      utxos.push(utxo);
+    }
 
-    if (utxo) {
-      let inputs: any = [{}];
-      inputs[0].blknum = utxo.blknum;
-      inputs[0].txindex = utxo.txindex;
-      inputs[0].oindex = utxo.oindex;
+    if (utxos.length) {
+      let inputs: any = [];
+      let outputs: any = [];
+      for (let x = 0; x < utxos.length; x++) {
+        let input: any = {};
+        input.blknum = utxos[x].blknum;
+        input.txindex = utxos[x].txindex;
+        input.oindex = utxos[x].oindex;
+        inputs.push(input);
 
-      let outputs: any = [{}];
-      outputs[0].outputGuard = utxo.owner;
-      outputs[0].currency = utxo.currency;
-      outputs[0].amount = utxo.amount;
-      outputs[0].outputType = 1;
-
+        let output: any = {};
+        output.outputGuard = utxos[x].owner;
+        output.currency = utxos[x].currency;
+        output.amount = utxos[x].amount;
+        output.outputType = 1;
+        outputs.push(output);
+      }
       let tx: any = {
         transactionType: 1,
         inputs,
@@ -474,7 +492,7 @@ export class OMGCLI {
         `;
       }
     } else {
-      throw `Error: UTXO ${utxo_pos} not found `;
+      throw `Error: No utxos found `;
     }
   }
 

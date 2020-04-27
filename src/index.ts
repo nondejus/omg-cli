@@ -103,10 +103,9 @@ async function run() {
       console.log(`Error: Could not add fees to the tx`);
     }
   } else if (options["generateTx"]) {
-    const newTx = await omgcli.generateTx(
-      omgcli.txOptions["from"],
-      options["generateTx"]
-    );
+    const utxos: number[] = options["generateTx"].split(",");
+    console.log(utxos);
+    const newTx = await omgcli.generateTx(omgcli.txOptions["from"], utxos);
 
     Util.printObject(newTx);
   } else if (options["getTxDetails"]) {
@@ -118,7 +117,7 @@ async function run() {
     const txRaw = fs.readFileSync(options["sendTx"]);
     const tx = JSON.parse(txRaw);
 
-    const txReceipt = await omgcli.sendTx(tx);
+    const txReceipt = await omgcli.sendDecodedTx(tx);
     Util.printOMGBlockExplorerLink(txReceipt.txhash, config);
   } else if (options["sendTypedTx"]) {
     let amount = 1;
@@ -218,7 +217,7 @@ async function run() {
   } else if (options["autoChallenge"]) {
     console.log("---> Watching for Byzantine events <---");
     const bot = new Bot(omgcli);
-    await bot.run(false);
+    await bot.run();
     // eslint-disable-next-line no-constant-condition
   } else if (options["parallelRuns"] && options["iterations"]) {
     const load = new Load(options["parallelRuns"], options["iterations"]);
