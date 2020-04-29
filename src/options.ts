@@ -256,6 +256,18 @@ const optionDefinitions = [
           "Challenge an output from an IN-Flight tx. Additionally specify the outputIndex.",
       },
       {
+        name: "getIFECompetitor",
+        type: String,
+        typeLabel: "{underline string}",
+        description: "",
+      },
+      {
+        name: "getProveIFECanonical",
+        type: String,
+        typeLabel: "{underline string}",
+        description: "",
+      },
+      {
         name: "challengeIFENotCanonical",
         type: String,
         typeLabel: "{underline string}",

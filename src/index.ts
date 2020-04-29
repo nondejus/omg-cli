@@ -86,8 +86,15 @@ async function run() {
     const txReceipt = await omgcli.addToken(options["addExitQueue"]);
     Util.printExplorerLinks(txReceipt, config);
   } else if (options["getExitQueue"]) {
-    const result = await omgcli.getExitQueue(options["getExitQueue"]);
-    Util.printObject(result);
+    let results = await omgcli.getExitQueue(options["getExitQueue"]);
+
+    for (let x = 0; x < results.length; x++) {
+      results[x].exitableAtDate = new Date(
+        results[x].exitableAt * 1000
+      ).toString();
+    }
+
+    Util.printObject(results);
   } else if (options["processExits"]) {
     const txReceipt = await omgcli.processExits(options["processExits"]);
     Util.printExplorerLinks(txReceipt, config);
@@ -104,7 +111,6 @@ async function run() {
     }
   } else if (options["generateTx"]) {
     const utxos: number[] = options["generateTx"].split(",");
-    console.log(utxos);
     const newTx = await omgcli.generateTx(omgcli.txOptions["from"], utxos);
 
     Util.printObject(newTx);
@@ -201,13 +207,23 @@ async function run() {
 
     const txReceipt = await omgcli.challengeIFEOutputSpent(challengeData);
     Util.printExplorerLinks(txReceipt, config);
+  } else if (options["getIFECompetitor"]) {
+    const competitor = await omgcli.getIFECompetitor(
+      options["getIFECompetitor"]
+    );
+    Util.printObject(competitor);
+  } else if (options["getProveIFECanonical"]) {
+    const prove = await omgcli.getProveIFECanonical(
+      options["getProveIFECanonical"]
+    );
+    Util.printObject(prove);
   } else if (options["challengeIFENotCanonical"]) {
     const challengeDataRaw = fs.readFileSync(
       options["challengeIFENotCanonical"]
     );
     const challengeData = JSONbig.parse(challengeDataRaw);
 
-    const txReceipt = omgcli.challengeIFENotCanonical(challengeData);
+    const txReceipt = await omgcli.challengeIFENotCanonical(challengeData);
     Util.printExplorerLinks(txReceipt, config);
   } else if (options["deleteNonPiggybackedIFE"]) {
     const exitId = await omgcli.getIFEId(options["deleteNonPiggybackedIFE"]);

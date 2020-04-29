@@ -504,7 +504,7 @@ export class OMGCLI {
     return await this.rootChain.processExits({
       token: asset,
       exitId: 0,
-      maxExitsToProcess: 20,
+      maxExitsToProcess: 5,
       txOptions: this.txOptions,
     });
   }
@@ -524,7 +524,12 @@ export class OMGCLI {
       txOptions: this.txOptions,
     });
   }
+
   async getProveIFECanonical(tx: String) {
     return await this.watcherInfo.inFlightExitProveCanonical(tx);
+  }
+
+  async getIFECompetitor(tx: string) {
+    return await this.watcherInfo.inFlightExitGetCompetitor(tx);
   }
 }
