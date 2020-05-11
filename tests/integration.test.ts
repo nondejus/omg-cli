@@ -165,7 +165,7 @@ test("Challenge SE for an inactive exit should fail", async () => {
 /*
  * IFE functions
  */
-test.only("Get IFE data for an unspent UTXO", async () => {
+test("Get IFE data for an unspent UTXO", async () => {
   const utxos = await testHelder.getUnspentUTXOs(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY,

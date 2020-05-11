@@ -90,8 +90,8 @@ export class Bot {
   }
 
   async run(expectedResults: number = 0) {
-    // eslint-disable-next-line no-constant-condition
     let resultsTotal: ChallengeSuccess[] = [];
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const status = await this.omgcli.getStatus();
       const receivingResults = await this.challenge(status);

@@ -1,7 +1,6 @@
 import { OMGCLI } from "../../src/omgcli";
 import { TestHelper } from "../../src/test_helper";
 import { Bot } from "../../src/bot";
-import { Util } from "../../src/util";
 const { transaction } = require("@omisego/omg-js-util/src");
 const config = require("../../config.js");
 
