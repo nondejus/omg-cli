@@ -8,7 +8,6 @@ const config = require("../config.js");
 
 import { OMGCLI } from "./omgcli";
 import { Util } from "./util";
-import { Load } from "./load";
 import { Bot } from "./bot";
 
 let optionsLists: object[] = [];
