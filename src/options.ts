@@ -287,21 +287,6 @@ const optionDefinitions = [
       },
     ],
   },
-  {
-    header: "Load Test",
-    optionList: [
-      {
-        name: "parallelRuns",
-        type: Number,
-        description: "The number of parallel workers to submit tx",
-      },
-      {
-        name: "iterations",
-        type: Number,
-        description: "The number times that all UTXOs should be spent",
-      },
-    ],
-  },
 ];
 
 module.exports = {

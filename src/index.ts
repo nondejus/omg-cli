@@ -8,7 +8,6 @@ const config = require("../config.js");
 
 import { OMGCLI } from "./omgcli";
 import { Util } from "./util";
-import { Load } from "./load";
 import { Bot } from "./bot";
 
 let optionsLists: object[] = [];
@@ -235,9 +234,6 @@ async function run() {
     const bot = new Bot(omgcli);
     await bot.run();
     // eslint-disable-next-line no-constant-condition
-  } else if (options["parallelRuns"] && options["iterations"]) {
-    const load = new Load(options["parallelRuns"], options["iterations"]);
-    load.run();
   } else {
     const usage = commandLineUsage(optionDefs["optionDefinitions"]);
     console.log(usage);
