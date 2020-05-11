@@ -37,6 +37,16 @@ test("Get fees", async () => {
   expect(firstFeeEntry).toHaveProperty("subunit_to_unit");
 });
 
+test(`Deposit some ETH`, async () => {
+  const receipts = await omgcli.deposit(transaction.ETH_CURRENCY, 100);
+  expect(receipts.depositReceipt.transactionHash.length).toBeGreaterThan(0);
+});
+
+test(`Deposit some ERC20 tokens`, async () => {
+  const receipts = await omgcli.deposit(config.erc20_contract, 100);
+  expect(receipts.depositReceipt.transactionHash.length).toBeGreaterThan(0);
+});
+
 test("Process exits for ETH", async () => {
   const queue = await omgcli.getExitQueue(transaction.ETH_CURRENCY);
 
@@ -49,10 +59,6 @@ test("Process exits for ETH", async () => {
     console.log(`Skipping test as the queue is empty`);
   }
 });
-
-/*
- * Plasma specific functions
- */
 
 test("Get UTXOs for an address", async () => {
   const response = await omgcli.getUTXOs(config.alice_eth_address);

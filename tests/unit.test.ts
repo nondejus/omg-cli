@@ -34,33 +34,3 @@ test("RLP encode a tx from a JSON file", async () => {
 
   expect(response).toHaveProperty("signedTx");
 });
-/*
-
-test(`Deposit some ETH from cli params`, async () => {
-  const cliOptions = {
-    deposit: transaction.ETH_CURRENCY,
-    amount: 1
-  };
-
-  const depositReceipt = await omgJSMain(cliOptions);
-  await awaitTransactionMined.awaitTx(web3, depositReceipt.transactionHash);
-  expect(depositReceipt.transactionHash.length).toBeGreaterThan(0);
-});
-
-test(`Deposit some ERC20 tokens from cli params`, async () => {
-  const cliOptions = {
-    deposit: config.erc20_contract,
-    setTxOptions: "./tx/txOptions-bob.json"
-  };
-
-  const depositReceipt = await omgJSMain(cliOptions);
-  await awaitTransactionMined.awaitTx(web3, depositReceipt.transactionHash);
-  expect(depositReceipt.transactionHash.length).toBeGreaterThan(0);
-});
-
-
-
-
-
-
-*/
