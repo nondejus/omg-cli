@@ -6,7 +6,7 @@ const config = require("../config.js");
 jest.setTimeout(200000);
 
 let omgcli: OMGCLI = new OMGCLI(config);
-const testHelder: TestHelper = new TestHelper(omgcli);
+const testHelper: TestHelper = new TestHelper(omgcli);
 
 /*
  * General functions
@@ -95,7 +95,7 @@ test("Get balance for an address", async () => {
 });
 
 test("Generate tx from two utxo", async () => {
-  const utxos = await testHelder.getUnspentUTXOs(
+  const utxos = await testHelper.getUnspentUTXOs(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY,
     true
@@ -114,7 +114,7 @@ test("Generate tx from two utxo", async () => {
 });
 
 test("Send a tx on the plasma chain", async () => {
-  const utxos = await testHelder.getUnspentUTXOs(
+  const utxos = await testHelper.getUnspentUTXOs(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY,
     true
@@ -134,7 +134,7 @@ test("Send a tx on the plasma chain", async () => {
  * SE functions
  */
 test("Get SE data for an unspent UTXO", async () => {
-  const utxos = await testHelder.getUnspentUTXOs(
+  const utxos = await testHelper.getUnspentUTXOs(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY
   );
@@ -146,7 +146,7 @@ test("Get SE data for an unspent UTXO", async () => {
 });
 
 test("Challenge SE for an inactive exit should fail", async () => {
-  const utxos = await testHelder.getUnspentUTXOs(
+  const utxos = await testHelper.getUnspentUTXOs(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY
   );
@@ -166,7 +166,7 @@ test("Challenge SE for an inactive exit should fail", async () => {
  * IFE functions
  */
 test("Get IFE data for an unspent UTXO", async () => {
-  const utxos = await testHelder.getUnspentUTXOs(
+  const utxos = await testHelper.getUnspentUTXOs(
     omgcli.txOptions.from,
     transaction.ETH_CURRENCY,
     true
